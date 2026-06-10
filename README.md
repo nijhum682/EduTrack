@@ -1,0 +1,3 @@
+# EduTrack
+Smart Education Platform
+
