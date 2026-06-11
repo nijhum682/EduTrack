@@ -20,7 +20,9 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
+        'phone_number',
         'password',
     ];
 
@@ -45,5 +47,31 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+    /**
+     * Relationship: A user can enroll in many courses.
+     */
+    public function courses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'enrollments')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Relationship: A user has many task submissions.
+     */
+    public function taskSubmissions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaskSubmission::class);
+    }
+
+    /**
+     * Relationship: Tasks completed by the user.
+     */
+    public function completedTasks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Task::class, 'task_submissions')
+                    ->wherePivot('is_completed', true)
+                    ->withTimestamps();
     }
 }
