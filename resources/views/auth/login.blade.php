@@ -25,16 +25,19 @@
         </script>
 
         <style>
-            .mesh-gradient {
-                background-color: #0b0f19;
+            .custom-bg {
+                background-color: #080c14;
                 background-image: 
-                    radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
-                    radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-                    radial-gradient(at 50% 100%, rgba(236, 72, 153, 0.08) 0px, transparent 50%);
+                    linear-gradient(rgba(8, 12, 20, 0.8), rgba(8, 12, 20, 0.8)),
+                    url('{{ asset('images/header-image.png') }}');
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
             }
         </style>
     </head>
-    <body class="mesh-gradient min-height-screen text-slate-100 flex items-center justify-center p-4 md:p-8 min-h-screen relative overflow-x-hidden">
+    <body class="custom-bg min-height-screen text-slate-100 flex items-center justify-center p-4 md:p-8 min-h-screen relative overflow-x-hidden">
         <!-- Floating Ambient Blobs -->
         <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
         <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -z-10 animate-pulse" style="animation-delay: 2s;"></div>

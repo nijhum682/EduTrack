@@ -102,6 +102,11 @@
                         @endif
                     </div>
                 </div>
+
+                <!-- Interactive Vector Illustration (Digital Learning Platforms) -->
+                <div class="hero-visual">
+                    <img src="{{ asset('images/hero-illustration.webp') }}" alt="Digital Learning Ecosystem" class="hero-image">
+                </div>
             </main>
 
         </div>
