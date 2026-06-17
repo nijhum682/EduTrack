@@ -32,6 +32,7 @@ class RegisterController extends Controller
             'username' => ['required', 'string', 'alpha_dash', 'min:3', 'max:50', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'phone_number' => ['nullable', 'string', 'max:20'],
+            'role' => ['required', 'string', 'in:student,teacher'],
             'password' => [
                 'required', 
                 'confirmed', 
@@ -48,11 +49,16 @@ class RegisterController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'phone_number' => $request->phone_number,
+            'role' => $request->role,
             'password' => Hash::make($request->password),
         ]);
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Account created successfully!');
+        if ($user->isTeacher()) {
+            return redirect()->route('teacher.dashboard')->with('success', 'Teacher account created successfully!');
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Student account created successfully!');
     }
 }

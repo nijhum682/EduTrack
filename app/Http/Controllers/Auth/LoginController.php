@@ -33,6 +33,11 @@ class LoginController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            $user = Auth::user();
+            if ($user->isTeacher()) {
+                return redirect()->intended(route('teacher.dashboard'))->with('success', 'Logged in successfully!');
+            }
+
             return redirect()->intended(route('dashboard'))->with('success', 'Logged in successfully!');
         }
 

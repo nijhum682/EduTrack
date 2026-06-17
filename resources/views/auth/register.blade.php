@@ -164,6 +164,42 @@
                         @enderror
                     </div>
 
+                    <!-- Role Selection -->
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Select Your Role</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Student Option -->
+                            <label class="relative flex flex-col items-center justify-center p-4 bg-slate-950/30 border border-slate-800 rounded-xl cursor-pointer hover:border-indigo-500/50 transition duration-200 group text-center">
+                                <input type="radio" name="role" value="student" required class="absolute top-3 right-3 text-indigo-600 focus:ring-indigo-500 bg-slate-950 border-slate-800" checked>
+                                <div class="w-10 h-10 mb-2 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition duration-200">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-bold text-white">Student</span>
+                                <span class="text-[10px] text-slate-500 mt-1">Enroll & complete tasks</span>
+                            </label>
+
+                            <!-- Teacher Option -->
+                            <label class="relative flex flex-col items-center justify-center p-4 bg-slate-950/30 border border-slate-800 rounded-xl cursor-pointer hover:border-purple-500/50 transition duration-200 group text-center">
+                                <input type="radio" name="role" value="teacher" required class="absolute top-3 right-3 text-purple-600 focus:ring-purple-500 bg-slate-950 border-slate-800">
+                                <div class="w-10 h-10 mb-2 bg-purple-500/10 text-purple-400 rounded-lg flex items-center justify-center group-hover:scale-110 transition duration-200">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                                    </svg>
+                                </div>
+                                <span class="text-sm font-bold text-white">Teacher</span>
+                                <span class="text-[10px] text-slate-500 mt-1">Manage tasks & classes</span>
+                            </label>
+                        </div>
+                        @error('role')
+                            <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
                     <!-- Password -->
                     <div>
                         <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>

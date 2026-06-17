@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'phone_number',
         'password',
+        'role',
     ];
 
     /**
@@ -73,5 +74,29 @@ class User extends Authenticatable
         return $this->belongsToMany(Task::class, 'task_submissions')
                     ->wherePivot('is_completed', true)
                     ->withTimestamps();
+    }
+
+    /**
+     * Relationship: A teacher has many taught courses.
+     */
+    public function taughtCourses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Course::class, 'instructor_id');
+    }
+
+    /**
+     * Helper: Check if user is a teacher.
+     */
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    /**
+     * Helper: Check if user is a student.
+     */
+    public function isStudent(): bool
+    {
+        return $this->role === 'student' || empty($this->role);
     }
 }
