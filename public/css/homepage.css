@@ -30,8 +30,8 @@ body {
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
-    overflow-x: hidden;
-    min-height: 100vh;
+    overflow: hidden;
+    height: 100vh;
     position: relative;
 }
 
@@ -40,7 +40,7 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: 100vh;
 }
 
 /* Header & Navigation */
@@ -194,8 +194,8 @@ header {
     justify-content: space-between;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 10rem 2rem 6rem 2rem;
-    min-height: calc(100vh - 60px);
+    padding: 6.5rem 2rem 1.5rem 2rem;
+    height: calc(100vh - 80px);
     position: relative;
     gap: 4rem;
 }
@@ -318,13 +318,23 @@ header {
 
 /* Responsive Styles */
 @media (max-width: 768px) {
+    body {
+        overflow: auto;
+        height: auto;
+    }
+
+    .app-wrapper {
+        height: auto;
+    }
+
     .nav-links {
         display: none; /* Hide standard links on mobile */
     }
     
     .hero {
         flex-direction: column;
-        padding-top: 8rem;
+        padding: 8rem 2rem 3rem 2rem;
+        height: auto;
         gap: 3rem;
         text-align: center;
     }

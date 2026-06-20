@@ -38,6 +38,10 @@ Route::middleware(['auth'])->group(function () {
     // Shared virtual classroom route
     Route::get('/classroom/{class}', [App\Http\Controllers\TeacherDashboardController::class, 'classroom'])->name('classroom');
 
+    // Student Exam Arena Routes
+    Route::get('/exam/{task}', [App\Http\Controllers\StudentExamController::class, 'startExam'])->name('student.exam');
+    Route::post('/exam/{task}/submit', [App\Http\Controllers\StudentExamController::class, 'submitExam'])->name('student.exam.submit');
+
     // API endpoints for AJAX operations
     Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);
     Route::post('/api/courses/{course}/enroll', [App\Http\Controllers\CourseApiController::class, 'enroll']);

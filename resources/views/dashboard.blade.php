@@ -251,13 +251,9 @@
                         🎨 Theme: <span id="theme-name">Space Dark</span>
                     </button>
                     
-                    <span class="text-sm text-slate-400 hidden sm:inline-block"><strong class="text-white">{{ Auth::user()->username }}</strong></span>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer border border-slate-700/50">
-                            Log Out
-                        </button>
-                    </form>
+                    <a href="{{ route('logout') }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer border border-slate-700/50 flex items-center justify-center">
+                        Log Out
+                    </a>
                 </div>
             </div>
         </header>
@@ -424,6 +420,68 @@
                             <div class="text-center py-12 text-slate-500 text-sm">
                                 Enroll in courses to start tracking tasks!
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Live & Scheduled Classes Widget -->
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg mt-6">
+                        <div class="mb-4">
+                            <h2 class="text-lg font-bold text-white">Live & Scheduled Classes</h2>
+                            <p class="text-xs text-slate-400">Join virtual classes hosted by instructors</p>
+                        </div>
+
+                        @php
+                            $enrolledCourseIds = Auth::user()->courses->pluck('id');
+                            $studentClasses = \App\Models\ScheduledClass::whereIn('course_id', $enrolledCourseIds)
+                                ->with('course')
+                                ->orderBy('scheduled_at', 'asc')
+                                ->get();
+                        @endphp
+
+                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                            @if($studentClasses->count() === 0)
+                                <div class="text-center py-8 text-slate-500 text-xs italic">
+                                    No classes scheduled for your enrolled courses.
+                                </div>
+                            @else
+                                @foreach($studentClasses as $class)
+                                    <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/60 bg-slate-900/10' }} rounded-xl p-3 flex flex-col gap-2 transition-all duration-300">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                                {{ $class->course->code }}
+                                            </span>
+                                            @if($class->is_active)
+                                                <span class="inline-flex items-center gap-1 text-[8px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
+                                                </span>
+                                            @else
+                                                <span class="text-[9px] text-slate-500">{{ $class->scheduled_at->diffForHumans() }}</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-xs text-white">{{ $class->title }}</div>
+                                            <div class="text-[9px] text-slate-500 mt-0.5">Instructor: {{ $class->course->instructor }}</div>
+                                            <div class="text-[9px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></div>
+                                        </div>
+                                        <div class="flex items-center justify-between border-t border-slate-800/40 pt-2 mt-1">
+                                            <span class="text-[9px] text-slate-500">{{ $class->scheduled_at->format('M d, H:i') }} &middot; {{ $class->duration_minutes }}m</span>
+                                            @if($class->is_active)
+                                                @if($class->platform === 'In-App Classroom')
+                                                    <a href="{{ route('classroom', $class->id) }}" class="text-[10px] bg-pink-600 hover:bg-pink-500 text-white font-bold py-1 px-2.5 rounded-lg border border-pink-500/20 transition cursor-pointer shadow-md shadow-pink-600/10">
+                                                        💻 Join Live Room
+                                                    </a>
+                                                @elseif($class->meeting_link)
+                                                    <a href="{{ $class->meeting_link }}" target="_blank" class="text-[10px] bg-slate-850 hover:bg-slate-800 text-slate-200 font-bold py-1 px-2.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
+                                                        🔗 Join Meeting
+                                                    </a>
+                                                @endif
+                                            @else
+                                                <span class="text-[9px] text-slate-500 italic">Not started yet</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
                         </div>
                     </div>
                 </section>
@@ -668,21 +726,58 @@
                         } else {
                             course.tasks.forEach(task => {
                                 // Locate if task is completed
-                                // We check user's completed submissions or just fetch from task object relations
-                                const isCompleted = task.submissions && task.submissions.some(sub => sub.is_completed);
+                                const userSub = task.submissions && task.submissions[0];
+                                const isCompleted = userSub && userSub.is_completed;
                                 const checkAttr = isCompleted ? 'checked' : '';
                                 const lineStrike = isCompleted ? 'line-through text-slate-500' : 'text-slate-200';
                                 
+                                const isGraded = userSub && userSub.score !== null && userSub.score !== undefined;
+                                let gradeBadge = '';
+                                if (isGraded) {
+                                    gradeBadge = `
+                                        <div class="mt-1 flex flex-wrap gap-2 items-center">
+                                            <span class="bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                                                Grade: ${userSub.score} / ${task.points} pts
+                                            </span>
+                                            ${userSub.feedback ? `<span class="text-[9px] text-slate-400 italic">"${userSub.feedback}"</span>` : ''}
+                                        </div>
+                                    `;
+                                }
+                                
+                                let inputElement = '';
+                                let actionBtn = '';
+                                if (task.is_test) {
+                                    if (isCompleted) {
+                                        inputElement = `<span class="mt-0.5 text-xs text-indigo-400">✅</span>`;
+                                    } else {
+                                        inputElement = `<span class="mt-0.5 text-xs text-amber-500">⏳</span>`;
+                                        actionBtn = `
+                                            <div class="mt-2">
+                                                <a href="/exam/${task.id}" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-1 px-3 rounded text-[10px] shadow shadow-indigo-650/20 active:scale-[0.98] transition cursor-pointer inline-flex items-center gap-1">
+                                                    ✍ Start Google-Form Test (${task.duration_minutes} Mins)
+                                                </a>
+                                            </div>
+                                        `;
+                                    }
+                                } else {
+                                    inputElement = `<input type="checkbox" data-task-id="${task.id}" class="task-checkbox mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-950 transition cursor-pointer" ${checkAttr}>`;
+                                }
+
                                 html += `
                                     <div class="flex items-start gap-3 text-xs group">
-                                        <input type="checkbox" data-task-id="${task.id}" class="task-checkbox mt-0.5 w-4 h-4 rounded text-indigo-600 bg-slate-800 border-slate-700 focus:ring-indigo-500 focus:ring-offset-slate-950 transition cursor-pointer" ${checkAttr}>
+                                        ${inputElement}
                                         <div class="flex-grow">
-                                            <div class="font-medium tracking-tight task-title-label transition-colors duration-300 ${lineStrike}">${task.title}</div>
+                                            <div class="font-medium tracking-tight task-title-label transition-colors duration-300 ${lineStrike}">
+                                                ${task.title}
+                                                ${task.is_test ? `<span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase ml-2 tracking-wider">Exam</span>` : ''}
+                                            </div>
                                             <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed">${task.description || 'No description.'}</p>
                                             <div class="flex gap-3 text-[9px] text-slate-500 mt-1">
                                                 <span>Weight: <strong class="text-slate-400">${task.points} pts</strong></span>
                                                 <span>Due: <strong class="text-slate-400">${new Date(task.due_date).toLocaleDateString()}</strong></span>
                                             </div>
+                                            ${actionBtn}
+                                            ${gradeBadge}
                                         </div>
                                     </div>
                                 `;

@@ -30,11 +30,11 @@ class TeacherDashboardController extends Controller
 
         // 2. Get tasks for the teacher's courses
         $courseIds = $courses->pluck('id');
-        $tasks = Task::whereIn('course_id', $courseIds)->with('course')->get();
+        $tasks = Task::whereIn('course_id', $courseIds)->with(['course', 'questions'])->get();
 
         // 3. Get student submissions for these tasks
         $submissions = TaskSubmission::whereIn('task_id', $tasks->pluck('id'))
-            ->with(['user', 'task.course'])
+            ->with(['user', 'task.course', 'task.questions'])
             ->orderBy('is_completed', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -82,7 +82,8 @@ class TeacherDashboardController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'required|date',
-            'points' => 'required|integer|min:1',
+            'is_test' => 'nullable|boolean',
+            'duration_minutes' => 'required_if:is_test,1|integer|min:5|max:480',
         ]);
 
         // Verify the teacher owns the course or claim it
@@ -91,15 +92,46 @@ class TeacherDashboardController extends Controller
             $course->update(['instructor_id' => Auth::id(), 'instructor' => Auth::user()->name]);
         }
 
-        Task::create([
+        $isTest = $request->boolean('is_test');
+        $totalPoints = 0;
+
+        if ($isTest && $request->has('questions')) {
+            foreach ($request->questions as $q) {
+                $totalPoints += intval($q['points'] ?? 0);
+            }
+        } else {
+            $request->validate(['points' => 'required|integer|min:1']);
+            $totalPoints = $request->points;
+        }
+
+        $task = Task::create([
             'course_id' => $request->course_id,
             'title' => $request->title,
             'description' => $request->description,
             'due_date' => $request->due_date,
-            'points' => $request->points,
+            'points' => $totalPoints,
+            'is_test' => $isTest,
+            'duration_minutes' => $isTest ? $request->duration_minutes : 60,
         ]);
 
-        return redirect()->back()->with('success', 'Task/Question created successfully!');
+        if ($isTest && $request->has('questions') && is_array($request->questions)) {
+            foreach ($request->questions as $index => $q) {
+                // Ensure options are clean
+                $options = null;
+                if ($q['type'] === 'mcq' && isset($q['options']) && is_array($q['options'])) {
+                    $options = array_values(array_filter($q['options']));
+                }
+                
+                $task->questions()->create([
+                    'question_text' => $q['text'],
+                    'type' => $q['type'],
+                    'points' => intval($q['points'] ?? 5),
+                    'options' => $options,
+                ]);
+            }
+        }
+
+        return redirect()->back()->with('success', $isTest ? 'Google Form style Test created successfully!' : 'Task/Question created successfully!');
     }
 
     /**
@@ -107,16 +139,35 @@ class TeacherDashboardController extends Controller
      */
     public function evaluateSubmission(Request $request, TaskSubmission $submission)
     {
-        $request->validate([
-            'score' => 'required|integer|min:0',
-            'feedback' => 'nullable|string',
-        ]);
+        // If it's a test, teacher might submit question-level grades
+        if ($request->has('question_scores') && is_array($request->question_scores)) {
+            $questionScores = $request->question_scores;
+            $totalScore = 0;
+            foreach ($questionScores as $qId => $score) {
+                $totalScore += intval($score);
+            }
 
-        $submission->update([
-            'score' => $request->score,
-            'feedback' => $request->feedback,
-            'graded_at' => now(),
-        ]);
+            $answers = $submission->answers ?: [];
+            $answers['question_grades'] = $questionScores;
+
+            $submission->update([
+                'score' => $totalScore,
+                'feedback' => $request->feedback,
+                'answers' => $answers,
+                'graded_at' => now(),
+            ]);
+        } else {
+            $request->validate([
+                'score' => 'required|integer|min:0',
+                'feedback' => 'nullable|string',
+            ]);
+
+            $submission->update([
+                'score' => $request->score,
+                'feedback' => $request->feedback,
+                'graded_at' => now(),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Submission evaluated and graded successfully!');
     }

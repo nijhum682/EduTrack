@@ -21,11 +21,14 @@ class TaskSubmission extends Model
         'is_completed',
         'score',
         'feedback',
-        'graded_at'
+        'graded_at',
+        'answers',
+        'uploaded_file'
     ];
 
     protected $casts = [
         'is_completed' => 'boolean',
+        'answers' => 'array',
     ];
 
     /**

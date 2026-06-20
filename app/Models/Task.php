@@ -18,7 +18,9 @@ class Task extends Model
         'title',
         'description',
         'due_date',
-        'points'
+        'points',
+        'is_test',
+        'duration_minutes'
     ];
 
     protected $casts = [
@@ -39,5 +41,13 @@ class Task extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(TaskSubmission::class);
+    }
+
+    /**
+     * Relationship: A test has many questions.
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(TaskQuestion::class);
     }
 }
