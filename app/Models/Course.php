@@ -19,6 +19,7 @@ class Course extends Model
         'code',
         'description',
         'instructor',
+        'instructor_id',
         'credits'
     ];
 
@@ -38,5 +39,21 @@ class Course extends Model
     {
         return $this->belongsToMany(User::class, 'enrollments')
                     ->withTimestamps();
+    }
+
+    /**
+     * Relationship: A course belongs to an instructor (User).
+     */
+    public function instructorUser(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'instructor_id');
+    }
+
+    /**
+     * Relationship: A course has many scheduled classes.
+     */
+    public function scheduledClasses(): HasMany
+    {
+        return $this->hasMany(ScheduledClass::class);
     }
 }

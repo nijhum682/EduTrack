@@ -11,7 +11,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Append our custom activity tracking middleware to the web group
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackUserActivity::class,
+        ]);
+
+        // Exclude cookies from Laravel's default encryption so frontend JS can access them
+        $middleware->encryptCookies(except: [
+            'user_last_active_time',
+            'dashboard_theme',
+        ]);
+
+        // Exempt logout from CSRF validation
+        $middleware->validateCsrfTokens(except: [
+            'logout',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

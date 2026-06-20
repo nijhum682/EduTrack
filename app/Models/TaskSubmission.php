@@ -18,7 +18,10 @@ class TaskSubmission extends Model
     protected $fillable = [
         'user_id',
         'task_id',
-        'is_completed'
+        'is_completed',
+        'score',
+        'feedback',
+        'graded_at'
     ];
 
     protected $casts = [

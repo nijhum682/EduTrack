@@ -17,13 +17,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create default test user if not exists
+        // Create default test student if not exists
         $user = User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
                 'name' => 'Test Student',
                 'username' => 'teststudent',
                 'phone_number' => '+15550199',
+                'role' => 'student',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            ]
+        );
+
+        // Create default test teacher if not exists
+        $teacher = User::firstOrCreate(
+            ['email' => 'teacher@example.com'],
+            [
+                'name' => 'Test Teacher',
+                'username' => 'testteacher',
+                'phone_number' => '+15550188',
+                'role' => 'teacher',
                 'password' => \Illuminate\Support\Facades\Hash::make('password'),
             ]
         );
@@ -35,6 +48,7 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Introduction to Computer Science',
                 'description' => 'Fundamentals of computer science, programming logic, and computational thinking using Python.',
                 'instructor' => 'Dr. Alan Turing',
+                'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]
         );
@@ -73,6 +87,7 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Advanced Web Development',
                 'description' => 'Building modern scalable web systems, focusing on MVC architectures, REST APIs, and AJAX.',
                 'instructor' => 'Prof. Tim Berners-Lee',
+                'instructor_id' => $teacher->id,
                 'credits' => 4,
             ]
         );
@@ -102,6 +117,7 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Database Management Systems',
                 'description' => 'Concepts of relational database models, SQL language, schema design, and normalization (1NF to BCNF).',
                 'instructor' => 'Dr. Edgar F. Codd',
+                'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]
         );
@@ -131,6 +147,7 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Artificial Intelligence & Ethics',
                 'description' => 'Overview of search algorithms, model weights, and ethical concerns of algorithmic bias.',
                 'instructor' => 'Prof. Ada Lovelace',
+                'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]
         );
