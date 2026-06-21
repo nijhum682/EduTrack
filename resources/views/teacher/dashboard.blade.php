@@ -658,3 +658,536 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+        </main>
+
+        <!-- Standard Task Modal -->
+        <div id="standard-task-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+            <div class="glass-panel w-full max-w-md rounded-2xl border border-slate-800 p-6 shadow-2xl relative">
+                <button onclick="closeStandardTaskModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer">&times;</button>
+                <h3 class="text-lg font-bold text-white mb-4">Create Standard Assignment</h3>
+                <form action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs text-slate-400 font-semibold mb-1">Target Course</label>
+                        <select name="course_id" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-indigo-500 transition cursor-pointer">
+                            @foreach($courses as $c)
+                                <option value="{{ $c->id }}">{{ $c->code }} &middot; {{ $c->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 font-semibold mb-1">Assignment Title</label>
+                        <input type="text" name="title" required placeholder="e.g. Lab 2: File IO Operations" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Max Points</label>
+                            <input type="number" name="points" required value="10" min="1" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Due Date</label>
+                            <input type="datetime-local" name="due_date" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 font-semibold mb-1">Requirements / Guidelines</label>
+                        <textarea name="description" placeholder="Write out the task instructions for students..." rows="3" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl py-3.5 shadow-lg shadow-indigo-650/20 active:scale-[0.98] transition cursor-pointer">
+                        Create Assignment
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Test Builder Modal (Google Forms style) -->
+        <div id="test-builder-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+            <div class="glass-panel w-full max-w-3xl rounded-2xl border border-slate-800 p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+                <button onclick="closeTestBuilderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer z-10">&times;</button>
+                
+                <div class="pb-4 border-b border-slate-800 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Google-Form Style Test Builder</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Design exam papers with dynamic question distribution</p>
+                    </div>
+                    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2 text-right">
+                        <span class="text-[9px] uppercase font-bold text-indigo-400 block">Total Marks</span>
+                        <span class="text-base font-extrabold text-white" id="builder-total-marks">0</span>
+                    </div>
+                </div>
+
+                <form action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-5 overflow-y-auto flex-grow pr-2 pt-4">
+                    @csrf
+                    <input type="hidden" name="is_test" value="1">
+
+                    <!-- Test Meta Details -->
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-4">
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Target Course</label>
+                            <select name="course_id" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition cursor-pointer">
+                                @foreach($courses as $c)
+                                    <option value="{{ $c->id }}">{{ $c->code }} &middot; {{ $c->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="md:col-span-5">
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Test Title</label>
+                            <input type="text" name="title" required placeholder="e.g. Midterm: Database Normalization" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Minutes)</label>
+                            <input type="number" name="duration_minutes" required value="60" min="5" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition text-center">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-8">
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Instructions / Description</label>
+                            <input type="text" name="description" placeholder="Instructions: Answer all questions. For files, upload your clear khata photo." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div class="md:col-span-4">
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Due Date</label>
+                            <input type="datetime-local" name="due_date" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Questions Container -->
+                    <div class="border-t border-slate-800/80 pt-4 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions List</h4>
+                            <button type="button" onclick="addQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-1.5 px-3.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10">
+                                ï¼‹ Add Question
+                            </button>
+                        </div>
+
+                        <!-- Question card elements go here -->
+                        <div id="test-questions-list" class="space-y-4">
+                            <!-- JS templates insert here -->
+                        </div>
+                    </div>
+
+                    <!-- Submit Footer -->
+                    <div class="border-t border-slate-800 pt-4 flex justify-end gap-3 flex-shrink-0">
+                        <button type="button" onclick="closeTestBuilderModal()" class="bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-semibold py-2.5 px-5 rounded-xl transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2.5 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-indigo-650/20 active:scale-[0.98]">
+                            Save & Publish Test
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Evaluation / Grading Modal -->
+        <div id="grading-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+            <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-800 p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+                <button onclick="closeGradingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer z-10">&times;</button>
+                
+                <div class="pb-3 border-b border-slate-850 flex-shrink-0">
+                    <h3 class="text-base font-bold text-white mb-0.5">Evaluate Assignment Submission</h3>
+                    <p class="text-xs text-slate-400">Review student response from <strong id="grading-student" class="text-white"></strong></p>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-3 my-4 flex justify-between items-center flex-shrink-0">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Task Title</span>
+                        <span class="text-xs font-semibold text-slate-300" id="grading-task-title"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Max Marks</span>
+                        <span class="text-xs font-bold text-slate-300" id="grading-max-points">0</span>
+                    </div>
+                </div>
+
+                <form id="grading-form" method="POST" class="space-y-4 overflow-y-auto flex-grow pr-2">
+                    @csrf
+                    
+                    <!-- CASE A: Standard Single Grade Block -->
+                    <div id="grading-standard-block" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Assign Score</label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="grading-score" name="score" min="0" class="w-24 bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition text-center font-bold text-base">
+                                <span class="text-slate-400 font-bold">/ <span id="grading-max-points-label" class="text-white">10</span> Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASE B: Google Form Question-by-Question Grading Block -->
+                    <div id="grading-test-questions-block" class="hidden space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400">Question Grading Console</h4>
+                        
+                        <!-- Question Answers and Grading Inputs List -->
+                        <div id="grading-questions-list" class="space-y-4 divide-y divide-slate-850">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Calculated Total Grade Display -->
+                        <div class="bg-purple-950/20 border border-purple-900/40 rounded-xl p-4 flex items-center justify-between">
+                            <span class="text-xs font-bold text-purple-300">Summed Total Grade:</span>
+                            <span class="text-base font-extrabold text-white"><span id="grading-calculated-total">0</span> / <span id="grading-test-max-marks">0</span> pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Khata Preview Block -->
+                    <div id="grading-khata-block" class="hidden border-t border-slate-800/80 pt-4 space-y-2">
+                        <span class="text-xs font-bold text-slate-400 block">Uploaded Khata (Answer Sheet)</span>
+                        <div class="border border-slate-800 rounded-xl bg-slate-900/40 p-2 text-center overflow-hidden">
+                            <a id="grading-khata-link" href="#" target="_blank" title="Click to view full size">
+                                <img id="grading-khata-img" src="" alt="Khata answer sheet" class="max-h-72 mx-auto rounded-lg border border-slate-800 hover:scale-[1.01] transition-transform duration-300 cursor-zoom-in">
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Feedback block -->
+                    <div class="border-t border-slate-800/80 pt-4">
+                        <label class="block text-xs text-slate-400 font-semibold mb-1">Teacher Feedback / Remarks</label>
+                        <textarea id="grading-feedback" name="feedback" rows="3" placeholder="Add guidance, positive remarks, or corrections..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition"></textarea>
+                    </div>
+
+                    <!-- Submit footer -->
+                    <div class="border-t border-slate-850 pt-4 flex justify-end gap-3 flex-shrink-0">
+                        <button type="button" onclick="closeGradingModal()" class="bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-semibold py-2 px-5 rounded-xl transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-purple-650/20 active:scale-[0.98]">
+                            Submit Grades
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800/80 bg-slate-950/40 py-6 text-center text-xs text-slate-500">
+            <p>&copy; 2026 EduTrack Smart Learning. Handcrafted with modern web architecture (Vite, Laravel, SQLite, AJAX).</p>
+        </footer>
+
+        <!-- Scripts -->
+        <script>
+            // TAB SWITCHING
+            function switchTab(tabId) {
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.add('hidden');
+                });
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                document.getElementById(tabId).classList.remove('hidden');
+                document.getElementById(tabId + '-btn').classList.add('active');
+                
+                // Save active tab preference
+                localStorage.setItem('teacher_active_tab', tabId);
+            }
+
+            // Standard Task Modals
+            function openStandardTaskModal() {
+                const modal = document.getElementById('standard-task-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+            function closeStandardTaskModal() {
+                const modal = document.getElementById('standard-task-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            // Test Builder Modals
+            function openTestBuilderModal() {
+                const modal = document.getElementById('test-builder-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                const list = document.getElementById('test-questions-list');
+                if (list.children.length === 0) {
+                    addQuestion();
+                }
+            }
+            function closeTestBuilderModal() {
+                const modal = document.getElementById('test-builder-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            // Dynamic Question Builder JS
+            let questionCount = 0;
+            function addQuestion() {
+                const list = document.getElementById('test-questions-list');
+                const index = questionCount++;
+                
+                const qBlock = document.createElement('div');
+                qBlock.id = `q-block-${index}`;
+                qBlock.className = 'bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 space-y-4 relative shadow-md';
+                qBlock.innerHTML = `
+                    <button type="button" onclick="removeQuestion(${index})" class="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer">ðŸ—‘ Delete</button>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-7">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question ${index + 1} Text</label>
+                            <input type="text" name="questions[${index}][text]" required placeholder="e.g. Write a brief history of Turing Machines." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question Type</label>
+                            <select name="questions[${index}][type]" onchange="handleTypeChange(this, ${index})" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-indigo-500 transition cursor-pointer">
+                                <option value="written">Written Text Response</option>
+                                <option value="mcq">Multiple Choice (MCQ)</option>
+                                <option value="file">File Upload (Notebook / Khata)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Marks</label>
+                            <input type="number" name="questions[${index}][points]" required value="5" min="1" oninput="updateTotalPoints()" class="points-input w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition text-center font-bold">
+                        </div>
+                    </div>
+
+                    <!-- MCQ Options block (Hidden by default) -->
+                    <div id="options-block-${index}" class="hidden pl-4 border-l-2 border-indigo-500/20 space-y-2">
+                        <label class="block text-[10px] text-slate-500 font-bold uppercase">MCQ Choice Options</label>
+                        <div id="options-container-${index}" class="space-y-2">
+                            <div class="flex items-center gap-2 option-row">
+                                <span class="text-xs text-slate-500 font-mono">1.</span>
+                                <input type="text" name="questions[${index}][options][]" value="Option A" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                                <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                            </div>
+                            <div class="flex items-center gap-2 option-row">
+                                <span class="text-xs text-slate-500 font-mono">2.</span>
+                                <input type="text" name="questions[${index}][options][]" value="Option B" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                                <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addOption(${index})" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">ï¼‹ Add Choice Option</button>
+                    </div>
+                `;
+                
+                list.appendChild(qBlock);
+                updateTotalPoints();
+            }
+
+            function removeQuestion(index) {
+                const block = document.getElementById(`q-block-${index}`);
+                if (block) {
+                    block.remove();
+                }
+                updateTotalPoints();
+            }
+
+            function handleTypeChange(select, index) {
+                const optionsBlock = document.getElementById(`options-block-${index}`);
+                if (select.value === 'mcq') {
+                    optionsBlock.classList.remove('hidden');
+                    optionsBlock.querySelectorAll('input').forEach(i => i.required = true);
+                } else {
+                    optionsBlock.classList.add('hidden');
+                    optionsBlock.querySelectorAll('input').forEach(i => i.required = false);
+                }
+            }
+
+            function addOption(qIndex) {
+                const container = document.getElementById(`options-container-${qIndex}`);
+                const rowsCount = container.children.length;
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 option-row';
+                row.innerHTML = `
+                    <span class="text-xs text-slate-500 font-mono">${rowsCount + 1}.</span>
+                    <input type="text" name="questions[${qIndex}][options][]" required placeholder="Option Choice" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                    <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                `;
+                container.appendChild(row);
+            }
+
+            function removeOption(btn) {
+                const row = btn.parentElement;
+                const container = row.parentElement;
+                if (container.children.length > 1) {
+                    row.remove();
+                    Array.from(container.children).forEach((child, idx) => {
+                        child.querySelector('span').textContent = `${idx + 1}.`;
+                    });
+                }
+            }
+
+            function updateTotalPoints() {
+                let sum = 0;
+                document.querySelectorAll('.points-input').forEach(input => {
+                    sum += parseInt(input.value || 0);
+                });
+                document.getElementById('builder-total-marks').textContent = sum;
+            }
+
+            // Grading Modal Actions
+            function handleGradingButtonClick(btn) {
+                const modal = document.getElementById('grading-modal');
+                const form = document.getElementById('grading-form');
+                
+                const submissionId = btn.getAttribute('data-id');
+                const studentName = btn.getAttribute('data-student');
+                const taskTitle = btn.getAttribute('data-task-title');
+                const maxPoints = btn.getAttribute('data-max-points');
+                const currentScore = btn.getAttribute('data-score');
+                const currentFeedback = btn.getAttribute('data-feedback');
+                const isTest = parseInt(btn.getAttribute('data-is-test'));
+                const questions = JSON.parse(btn.getAttribute('data-questions') || '[]');
+                const answers = JSON.parse(btn.getAttribute('data-answers') || '{}');
+                const uploadedFile = btn.getAttribute('data-file');
+
+                form.action = `/teacher/submissions/${submissionId}/evaluate`;
+                
+                document.getElementById('grading-student').textContent = studentName;
+                document.getElementById('grading-task-title').textContent = taskTitle;
+                document.getElementById('grading-max-points').textContent = maxPoints;
+                document.getElementById('grading-feedback').value = currentFeedback;
+
+                // Handle Khata Image file block
+                const khataBlock = document.getElementById('grading-khata-block');
+                const khataImg = document.getElementById('grading-khata-img');
+                const khataLink = document.getElementById('grading-khata-link');
+                if (uploadedFile) {
+                    khataImg.src = uploadedFile;
+                    khataLink.href = uploadedFile;
+                    khataBlock.classList.remove('hidden');
+                } else {
+                    khataImg.src = '';
+                    khataLink.href = '#';
+                    khataBlock.classList.add('hidden');
+                }
+
+                const standardBlock = document.getElementById('grading-standard-block');
+                const testBlock = document.getElementById('grading-test-questions-block');
+                
+                if (isTest) {
+                    standardBlock.classList.add('hidden');
+                    testBlock.classList.remove('hidden');
+                    document.getElementById('grading-score').required = false;
+
+                    document.getElementById('grading-test-max-marks').textContent = maxPoints;
+                    
+                    const qListContainer = document.getElementById('grading-questions-list');
+                    qListContainer.innerHTML = '';
+                    
+                    const questionGrades = answers.question_grades || {};
+                    
+                    questions.forEach((q, idx) => {
+                        const questionId = q.id;
+                        const studentAnswer = answers[questionId] || 'No Answer.';
+                        const scoreVal = questionGrades[questionId] !== undefined ? questionGrades[questionId] : '';
+                        
+                        const qRow = document.createElement('div');
+                        qRow.className = 'py-3 space-y-2';
+                        
+                        let answerSnippet = '';
+                        if (q.type === 'mcq') {
+                            answerSnippet = `
+                                <div class="text-[10px] text-slate-400 bg-slate-900/50 rounded px-2.5 py-1 inline-block border border-slate-800">
+                                    Student Answer: <strong class="text-indigo-400">${studentAnswer}</strong>
+                                </div>
+                            `;
+                        } else if (q.type === 'written') {
+                            answerSnippet = `
+                                <div class="bg-slate-950/30 border border-slate-900 p-2.5 rounded-xl text-[11px] text-slate-300 leading-relaxed font-mono">
+                                    ${studentAnswer}
+                                </div>
+                            `;
+                        } else if (q.type === 'file') {
+                            answerSnippet = `
+                                <div class="text-[10px] text-slate-400 italic">
+                                    Answers submitted via Khata file. (Check the Khata preview panel below)
+                                </div>
+                            `;
+                        }
+
+                        qRow.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div class="max-w-[85%]">
+                                    <span class="text-[10px] uppercase font-bold text-slate-500">Q${idx + 1} (${q.type.toUpperCase()})</span>
+                                    <div class="text-xs font-bold text-slate-200 mt-0.5">${q.question_text}</div>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <input type="number" name="question_scores[${questionId}]" value="${scoreVal}" required min="0" max="${q.points}" oninput="calculateGradingTotal()" class="question-grade-input w-16 bg-slate-900/60 border border-slate-800 rounded-xl py-1 px-2 text-xs font-bold text-slate-200 text-center outline-none focus:border-purple-500 transition">
+                                    <span class="text-[10px] text-slate-500">/ ${q.points}</span>
+                                </div>
+                            </div>
+                            <div class="pt-1">
+                                ${answerSnippet}
+                            </div>
+                        `;
+                        qListContainer.appendChild(qRow);
+                    });
+                    
+                    calculateGradingTotal();
+                } else {
+                    standardBlock.classList.remove('hidden');
+                    testBlock.classList.add('hidden');
+                    
+                    const scoreInput = document.getElementById('grading-score');
+                    scoreInput.required = true;
+                    scoreInput.value = currentScore;
+                    scoreInput.max = maxPoints;
+                    
+                    document.getElementById('grading-max-points-label').textContent = maxPoints;
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function calculateGradingTotal() {
+                let total = 0;
+                document.querySelectorAll('.question-grade-input').forEach(input => {
+                    total += parseInt(input.value || 0);
+                });
+                document.getElementById('grading-calculated-total').textContent = total;
+            }
+
+            function closeGradingModal() {
+                const modal = document.getElementById('grading-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                // Initialize default tab from localStorage
+                const activeTab = localStorage.getItem('teacher_active_tab') || 'courses-tab';
+                switchTab(activeTab);
+
+                // 1. COOKIE THEME MANAGEMENT
+                const themeToggle = document.getElementById('theme-toggle');
+                const themeName = document.getElementById('theme-name');
+                
+                function getCookie(name) {
+                    const value = `; ${document.cookie}`;
+                    const parts = value.split(`; ${name}=`);
+                    if (parts.length === 2) return parts.pop().split(';').shift();
+                    return null;
+                }
+
+                function setCookie(name, value, days) {
+                    let expires = "";
+                    if (days) {
+                        const date = new Date();
+                        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                        expires = "; expires=" + date.toUTCString();
+                    }
+                    document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`;
+                }
+
+                const currentTheme = getCookie('dashboard_theme') || 'theme-space-dark';
+                document.body.className = currentTheme;
+                themeName.textContent = currentTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
+
+                themeToggle.addEventListener('click', function () {
+                    const newTheme = document.body.classList.contains('theme-space-dark') 
+                        ? 'theme-space-light' 
+                        : 'theme-space-dark';
+                    
+                    document.body.className = newTheme;
+                    setCookie('dashboard_theme', newTheme, 30);
+                    themeName.textContent = newTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
+                });
+            });
+        </script>
+    </body>
+</html>
