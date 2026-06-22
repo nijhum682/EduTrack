@@ -20,36 +20,41 @@ Route::post('/login', [LoginController::class, 'login']);
 
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        if (Auth::user()->isTeacher()) {
-            return redirect()->route('teacher.dashboard');
-        }
-        return view('dashboard');
-    })->name('dashboard');
-
     Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
 
-    // Teacher Dashboard Routes
-    Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
-    Route::post('/teacher/courses', [App\Http\Controllers\TeacherDashboardController::class, 'createCourse'])->name('teacher.courses.create');
-    Route::post('/teacher/tasks', [App\Http\Controllers\TeacherDashboardController::class, 'createTask'])->name('teacher.tasks.create');
-    Route::post('/teacher/submissions/{submission}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateSubmission'])->name('teacher.submissions.evaluate');
-    Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create');
-    Route::post('/teacher/classes/{class}/toggle-active', [App\Http\Controllers\TeacherDashboardController::class, 'toggleClassActive'])->name('teacher.classes.toggle-active');
+    // Student Routes
+    Route::middleware(['student'])->group(function () {
+        Route::get('/dashboard', function () {
+            if (Auth::user()->isTeacher()) {
+                return redirect()->route('teacher.dashboard');
+            }
+            return view('dashboard');
+        })->name('dashboard');
+
+        // Student Exam Arena Routes
+        Route::get('/exam/{task}', [App\Http\Controllers\StudentExamController::class, 'startExam'])->name('student.exam');
+        Route::post('/exam/{task}/submit', [App\Http\Controllers\StudentExamController::class, 'submitExam'])->name('student.exam.submit');
+
+        // API endpoints for AJAX operations
+        Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);
+        Route::post('/api/courses/{course}/enroll', [App\Http\Controllers\CourseApiController::class, 'enroll']);
+        Route::post('/api/courses/{course}/unenroll', [App\Http\Controllers\CourseApiController::class, 'unenroll']);
+        Route::post('/api/tasks/{task}/toggle', [App\Http\Controllers\CourseApiController::class, 'toggleTask']);
+        Route::get('/api/user/stats', [App\Http\Controllers\CourseApiController::class, 'getStats']);
+    });
+
+    // Teacher Routes
+    Route::middleware(['teacher'])->group(function () {
+        Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
+        Route::post('/teacher/courses', [App\Http\Controllers\TeacherDashboardController::class, 'createCourse'])->name('teacher.courses.create');
+        Route::post('/teacher/tasks', [App\Http\Controllers\TeacherDashboardController::class, 'createTask'])->name('teacher.tasks.create');
+        Route::post('/teacher/submissions/{submission}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateSubmission'])->name('teacher.submissions.evaluate');
+        Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create');
+        Route::post('/teacher/classes/{class}/toggle-active', [App\Http\Controllers\TeacherDashboardController::class, 'toggleClassActive'])->name('teacher.classes.toggle-active');
+    });
     
     // Shared virtual classroom route
     Route::get('/classroom/{class}', [App\Http\Controllers\TeacherDashboardController::class, 'classroom'])->name('classroom');
-
-    // Student Exam Arena Routes
-    Route::get('/exam/{task}', [App\Http\Controllers\StudentExamController::class, 'startExam'])->name('student.exam');
-    Route::post('/exam/{task}/submit', [App\Http\Controllers\StudentExamController::class, 'submitExam'])->name('student.exam.submit');
-
-    // API endpoints for AJAX operations
-    Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);
-    Route::post('/api/courses/{course}/enroll', [App\Http\Controllers\CourseApiController::class, 'enroll']);
-    Route::post('/api/courses/{course}/unenroll', [App\Http\Controllers\CourseApiController::class, 'unenroll']);
-    Route::post('/api/tasks/{task}/toggle', [App\Http\Controllers\CourseApiController::class, 'toggleTask']);
-    Route::get('/api/user/stats', [App\Http\Controllers\CourseApiController::class, 'getStats']);
 
     Route::match(['get', 'post'], '/logout', function () {
         Auth::logout();

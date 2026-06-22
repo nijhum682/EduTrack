@@ -26,6 +26,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'logout',
         ]);
+
+        // Register route aliases for role protection middlewares
+        $middleware->alias([
+            'teacher' => \App\Http\Middleware\TeacherMiddleware::class,
+            'student' => \App\Http\Middleware\StudentMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
