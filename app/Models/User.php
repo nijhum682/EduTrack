@@ -67,6 +67,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relationship: A user has many activities.
+     */
+    public function activities(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Activity::class)->orderBy('created_at', 'desc');
+    }
+
+    /**
      * Relationship: Tasks completed by the user.
      */
     public function completedTasks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany

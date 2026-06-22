@@ -27,6 +27,8 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+    Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+
     // Teacher Dashboard Routes
     Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
     Route::post('/teacher/courses', [App\Http\Controllers\TeacherDashboardController::class, 'createCourse'])->name('teacher.courses.create');

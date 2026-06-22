@@ -60,7 +60,7 @@ class TeacherDashboardController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Course::create([
+        $course = Course::create([
             'title' => $request->title,
             'code' => strtoupper($request->code),
             'credits' => $request->credits,
@@ -68,6 +68,8 @@ class TeacherDashboardController extends Controller
             'instructor' => Auth::user()->name,
             'instructor_id' => Auth::id(),
         ]);
+
+        \App\Models\Activity::log('course_creation', "Created course: {$course->code} - {$course->title}");
 
         return redirect()->back()->with('success', 'Course created successfully!');
     }
@@ -131,6 +133,8 @@ class TeacherDashboardController extends Controller
             }
         }
 
+        \App\Models\Activity::log('task_creation', "Created " . ($isTest ? "test" : "task") . ": {$task->title} for {$course->title}");
+
         return redirect()->back()->with('success', $isTest ? 'Google Form style Test created successfully!' : 'Task/Question created successfully!');
     }
 
@@ -169,6 +173,10 @@ class TeacherDashboardController extends Controller
             ]);
         }
 
+        $submission->load(['user', 'task.course']);
+        \App\Models\Activity::log('submission_evaluation', "Graded task submission for student {$submission->user->name} on task: {$submission->task->title}");
+        \App\Models\Activity::log('grade_received', "Your submission for task: {$submission->task->title} has been graded by " . Auth::user()->name . ".", $submission->user_id);
+
         return redirect()->back()->with('success', 'Submission evaluated and graded successfully!');
     }
 
@@ -186,7 +194,7 @@ class TeacherDashboardController extends Controller
             'meeting_link' => 'nullable|url',
         ]);
 
-        ScheduledClass::create([
+        $scheduledClass = ScheduledClass::create([
             'course_id' => $request->course_id,
             'title' => $request->title,
             'scheduled_at' => $request->scheduled_at,
@@ -195,6 +203,9 @@ class TeacherDashboardController extends Controller
             'meeting_link' => $request->meeting_link,
             'is_active' => false,
         ]);
+
+        $course = Course::find($request->course_id);
+        \App\Models\Activity::log('class_scheduling', "Scheduled class: {$scheduledClass->title} for " . ($course ? $course->title : 'Course'));
 
         return redirect()->back()->with('success', 'Class session scheduled successfully!');
     }
@@ -209,6 +220,9 @@ class TeacherDashboardController extends Controller
         ]);
 
         $status = $class->is_active ? 'started' : 'ended';
+
+        $class->load('course');
+        \App\Models\Activity::log('class_toggle', "Class '{$class->title}' has been {$status} for {$class->course->title}");
 
         return redirect()->back()->with('success', "Class session has been {$status}!");
     }

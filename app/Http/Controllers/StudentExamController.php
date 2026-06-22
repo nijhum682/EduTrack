@@ -79,6 +79,8 @@ class StudentExamController extends Controller
         }
         $submission->save();
 
+        \App\Models\Activity::log('exam_submission', "Submitted test: {$task->title} for {$task->course->title}");
+
         return redirect()->route('dashboard')->with('success', 'Test submitted successfully!');
     }
 }

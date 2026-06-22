@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -249,9 +249,25 @@
                 </a>
 
                 <!-- Theme Switcher & User Details -->
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
                     <button id="theme-toggle" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer" title="Toggle Dashboard Theme">
-                        ðŸŽ¨ Theme: <span id="theme-name">Space Dark</span>
+                        🎨 Theme: <span id="theme-name">Space Dark</span>
+                    </button>
+
+                    <!-- Notifications Button -->
+                    <button onclick="toggleNotificationsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer flex items-center gap-1.5" title="View Activity Notifications">
+                        🔔 Notifications
+                        @php
+                            $notifCount = Auth::user()->activities()->count();
+                        @endphp
+                        @if($notifCount > 0)
+                            <span class="bg-indigo-500 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold">{{ $notifCount }}</span>
+                        @endif
+                    </button>
+
+                    <!-- Profile Button -->
+                    <button onclick="toggleProfileModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer flex items-center gap-1" title="Manage Profile">
+                        👤 Profile
                     </button>
                     
                     <a href="{{ route('logout') }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer border border-slate-700/50 flex items-center justify-center">
@@ -1186,8 +1202,160 @@
                     document.body.className = newTheme;
                     setCookie('dashboard_theme', newTheme, 30);
                     themeName.textContent = newTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
+                // Automatically dismiss toasts after 5 seconds
+                document.querySelectorAll('.toast-item').forEach(toast => {
+                    setTimeout(() => {
+                        toast.classList.add('opacity-0', 'translate-y-2');
+                        setTimeout(() => toast.remove(), 500);
+                    }, 5000);
                 });
             });
+
+            // Modal Toggling Functions
+            function toggleNotificationsModal() {
+                const modal = document.getElementById('notifications-modal');
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                } else {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            }
+
+            function toggleProfileModal() {
+                const modal = document.getElementById('profile-modal');
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                } else {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+            }
+
+            // Open Profile modal automatically if validation errors exist
+            @if ($errors->any())
+                toggleProfileModal();
+            @endif
         </script>
+
+        <!-- Notifications Modal (Glassmorphic) -->
+        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[85vh]">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
+                    <h3 class="text-xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
+                        🔔 Activity Notifications
+                    </h3>
+                    <button onclick="toggleNotificationsModal()" class="text-slate-400 hover:text-white text-2xl font-bold transition cursor-pointer">&times;</button>
+                </div>
+                
+                <!-- Modal Body (Scrollable) -->
+                <div class="flex-grow overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+                    @php
+                        $userActivities = Auth::user()->activities;
+                    @endphp
+                    @if(!$userActivities || $userActivities->isEmpty())
+                        <div class="text-center py-12 text-slate-400">
+                            <span class="text-4xl block mb-2">📭</span>
+                            <p class="text-sm font-medium">No recent activities found.</p>
+                            <p class="text-xs text-slate-500 mt-1">Your actions will be logged here.</p>
+                        </div>
+                    @else
+                        @foreach($userActivities as $act)
+                            <div class="p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/80 hover:border-purple-500/30 transition flex flex-col gap-1">
+                                <p class="text-sm font-medium text-slate-200 leading-relaxed">{{ $act->description }}</p>
+                                <div class="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+                                    <span class="font-semibold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 uppercase tracking-wider text-[9px]">{{ str_replace('_', ' ', $act->type) }}</span>
+                                    <span>{{ $act->created_at->setTimezone('Asia/Dhaka')->format('M d, Y h:i A') }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Modal (Glassmorphic) -->
+        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
+                    <h3 class="text-xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
+                        👤 My Profile Info
+                    </h3>
+                    <button onclick="toggleProfileModal()" class="text-slate-400 hover:text-white text-2xl font-bold transition cursor-pointer">&times;</button>
+                </div>
+                
+                <!-- Modal Body (Form) -->
+                <form action="{{ route('profile.update') }}" method="POST" class="flex-grow overflow-y-auto space-y-4 pr-1">
+                    @csrf
+                    
+                    <!-- Display Errors inside modal if validation fails -->
+                    @if($errors->any())
+                        <div class="bg-rose-950/60 border border-rose-500/40 text-rose-300 p-3 rounded-xl text-xs space-y-1">
+                            <strong>Validation failed:</strong>
+                            <ul class="list-disc pl-4 space-y-0.5">
+                                @foreach($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Name Field -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Full Name</label>
+                        <input type="text" name="name" value="{{ old('name', Auth::user()->name) }}" required class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition">
+                    </div>
+
+                    <!-- Username Field -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Username</label>
+                        <input type="text" name="username" value="{{ old('username', Auth::user()->username) }}" required class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition">
+                    </div>
+
+                    <!-- Email Field -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" name="email" value="{{ old('email', Auth::user()->email) }}" required class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition">
+                    </div>
+
+                    <!-- Phone Number Field -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Phone Number</label>
+                        <input type="text" name="phone_number" value="{{ old('phone_number', Auth::user()->phone_number) }}" class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-purple-500/50 transition" placeholder="e.g. +8801700000000">
+                    </div>
+
+                    <!-- Password Fields (Optional) -->
+                    <div class="border-t border-slate-800/80 pt-3">
+                        <label class="block text-xs font-bold text-purple-400 uppercase tracking-wider mb-2">Change Password (Optional)</label>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">New Password</label>
+                                <input type="password" name="password" class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500/50 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Confirm New Password</label>
+                                <input type="password" name="password_confirmation" class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none focus:border-purple-500/50 transition">
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1">Must be at least 6 characters with an uppercase letter, lowercase letter, number, and special character.</p>
+                    </div>
+
+                    <!-- Save Buttons -->
+                    <div class="flex gap-3 pt-2">
+                        <button type="submit" class="flex-grow bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer text-center">
+                            Save Changes
+                        </button>
+                        <button type="button" onclick="toggleProfileModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 px-4 rounded-xl text-sm transition cursor-pointer">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </body>
 </html>
