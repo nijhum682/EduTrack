@@ -71,6 +71,14 @@ class CourseApiController extends Controller
     {
         $user = Auth::user();
 
+        // Block direct enrollment if course has fee
+        if ($course->enrollment_fee > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This course requires an enrollment fee. Please complete checkout.'
+            ], 403);
+        }
+
         // CRUD - Create: Check if already enrolled, if not create relation
         if (!$user->courses()->where('course_id', $course->id)->exists()) {
             $user->courses()->attach($course->id);
@@ -219,6 +227,67 @@ class CourseApiController extends Controller
                 'overall_grade' => $overallGrade,
                 'last_activity_session' => $lastActiveSession
             ]
+        ]);
+    }
+
+    /**
+     * Show the course payment page.
+     */
+    public function showPaymentPage(Course $course)
+    {
+        $user = Auth::user();
+        if ($user->courses()->where('course_id', $course->id)->exists()) {
+            return redirect()->route('dashboard')->with('success', 'You are already enrolled in this course.');
+        }
+
+        return view('course.payment', compact('course'));
+    }
+
+    /**
+     * Complete the course payment and enroll.
+     */
+    public function completePayment(Request $request, Course $course)
+    {
+        $request->validate([
+            'payment_method' => 'required|string|in:bkash,nagad,card',
+            'account_number' => 'required|string|max:50',
+        ]);
+
+        $user = Auth::user();
+
+        if (!$user->courses()->where('course_id', $course->id)->exists()) {
+            $user->courses()->attach($course->id);
+            
+            // Log Student notification
+            $fee = $course->enrollment_fee;
+            $method = ucfirst($request->payment_method);
+            $account = $request->account_number;
+            
+            \App\Models\Activity::log(
+                'course_enrollment', 
+                "Enrolled in {$course->code} - {$course->title} after paying {$fee} Taka via {$method} (Acc: {$account}).",
+                $user->id
+            );
+
+            // Log Teacher notification
+            $teacherId = $course->instructor_id;
+            if (!$teacherId) {
+                $teacher = \App\Models\User::where('name', $course->instructor)->where('role', 'teacher')->first();
+                $teacherId = $teacher ? $teacher->id : null;
+            }
+
+            if ($teacherId) {
+                \App\Models\Activity::log(
+                    'student_enrollment', 
+                    "{$user->name} enrolled in {$course->code} - {$course->title} and paid {$fee} Taka via {$method} (Acc: {$account}).",
+                    $teacherId
+                );
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment and enrollment completed successfully!'
         ]);
     }
 }

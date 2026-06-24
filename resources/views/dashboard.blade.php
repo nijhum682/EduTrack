@@ -827,6 +827,12 @@
                     const btn = e.currentTarget;
                     const courseId = btn.getAttribute('data-course-id');
                     const action = btn.getAttribute('data-action'); // 'enroll' or 'unenroll'
+                    const fee = parseInt(btn.getAttribute('data-enrollment-fee') || '0');
+                    
+                    if (action === 'enroll' && fee > 0) {
+                        window.location.href = `/course/${courseId}/payment`;
+                        return;
+                    }
                     
                     btn.disabled = true;
                     btn.textContent = action === 'enroll' ? 'Enrolling...' : 'Unenrolling...';

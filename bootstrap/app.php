@@ -31,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'teacher' => \App\Http\Middleware\TeacherMiddleware::class,
             'student' => \App\Http\Middleware\StudentMiddleware::class,
+            'course.auth' => \App\Http\Middleware\CourseAuthorization::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

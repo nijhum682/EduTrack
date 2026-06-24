@@ -35,6 +35,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/exam/{task}', [App\Http\Controllers\StudentExamController::class, 'startExam'])->name('student.exam');
         Route::post('/exam/{task}/submit', [App\Http\Controllers\StudentExamController::class, 'submitExam'])->name('student.exam.submit');
 
+        // Course Payment Flow
+        Route::get('/course/{course}/payment', [App\Http\Controllers\CourseApiController::class, 'showPaymentPage'])->name('course.payment')->middleware('course.auth');
+        Route::post('/course/{course}/payment/complete', [App\Http\Controllers\CourseApiController::class, 'completePayment'])->name('course.payment.complete')->middleware('course.auth');
+
         // API endpoints for AJAX operations
         Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);
         Route::post('/api/courses/{course}/enroll', [App\Http\Controllers\CourseApiController::class, 'enroll']);
