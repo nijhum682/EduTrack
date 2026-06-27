@@ -56,4 +56,29 @@ class Course extends Model
     {
         return $this->hasMany(ScheduledClass::class);
     }
+
+    /**
+     * Relationship: A course has many lectures.
+     */
+    public function lectures(): HasMany
+    {
+        return $this->hasMany(Lecture::class);
+    }
+
+    /**
+     * Relationship: A course has many shared notes.
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CourseNote::class);
+    }
+
+    /**
+     * Relationship: A course has many Q&A questions.
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(CourseQuestion::class);
+    }
 }
+

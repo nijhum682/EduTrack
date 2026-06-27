@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Task;
 use App\Models\TaskSubmission;
+use App\Models\Lecture;
+use App\Models\CourseNote;
+use App\Models\CourseQuestion;
+use App\Models\CourseAnswer;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -289,5 +294,22 @@ class CourseApiController extends Controller
             'success' => true,
             'message' => 'Payment and enrollment completed successfully!'
         ]);
+    }
+
+    /**
+     * Show enrolled course workspace page with details, classes, notes, and Q&A.
+     */
+    public function showCourseDetails(Course $course)
+    {
+        $course->load([
+            'lectures' => function ($query) {
+                $query->orderBy('lecture_number', 'asc');
+            },
+            'notes.user',
+            'questions.user',
+            'questions.answers.user'
+        ]);
+
+        return view('course.show', compact('course'));
     }
 }

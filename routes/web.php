@@ -47,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/user/stats', [App\Http\Controllers\CourseApiController::class, 'getStats']);
     });
 
+    // Shared Course Workspace Routes (enrolled students & teachers)
+    Route::middleware(['course.auth'])->group(function () {
+        Route::get('/course/{course}', [App\Http\Controllers\CourseApiController::class, 'showCourseDetails'])->name('course.show');
+    });
+
     // Teacher Routes
     Route::middleware(['teacher'])->group(function () {
         Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
