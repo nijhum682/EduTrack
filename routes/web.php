@@ -53,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/course/{course}/notes', [App\Http\Controllers\CourseApiController::class, 'uploadNote'])->name('course.notes.upload');
         Route::post('/course/{course}/questions', [App\Http\Controllers\CourseApiController::class, 'askQuestion'])->name('course.questions.ask');
         Route::post('/course/{course}/questions/{question}/answers', [App\Http\Controllers\CourseApiController::class, 'replyQuestion'])->name('course.questions.reply');
+        Route::post('/course/{course}/lectures', [App\Http\Controllers\TeacherDashboardController::class, 'createLecture'])->name('teacher.lectures.create');
     });
 
     // Teacher Routes

@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Task;
 use App\Models\TaskSubmission;
 use App\Models\ScheduledClass;
+use App\Models\Lecture;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -246,5 +247,28 @@ class TeacherDashboardController extends Controller
         }
 
         return view('teacher.classroom', compact('class', 'user'));
+    }
+
+    /**
+     * Create a new class/lecture for a course.
+     */
+    public function createLecture(Request $request, Course $course)
+    {
+        $request->validate([
+            'lecture_number' => 'required|string|max:50',
+            'name' => 'required|string|max:255',
+            'details' => 'nullable|string',
+        ]);
+
+        Lecture::create([
+            'course_id' => $course->id,
+            'lecture_number' => $request->lecture_number,
+            'name' => $request->name,
+            'details' => $request->details,
+        ]);
+
+        \App\Models\Activity::log('lecture_creation', "Uploaded class lecture {$request->lecture_number} - {$request->name} for {$course->title}");
+
+        return redirect()->back()->with('success', 'Class/Lecture uploaded successfully!');
     }
 }
