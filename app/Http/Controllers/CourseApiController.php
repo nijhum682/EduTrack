@@ -312,4 +312,123 @@ class CourseApiController extends Controller
 
         return view('course.show', compact('course'));
     }
+
+    /**
+     * Upload course notes PDF file.
+     */
+    public function uploadNote(Request $request, Course $course)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'note_file' => 'required|file|mimes:pdf|max:10240', // Max 10MB PDF
+        ]);
+
+        $user = Auth::user();
+        $filePath = null;
+
+        if ($request->hasFile('note_file')) {
+            $file = $request->file('note_file');
+            $filename = time() . '_' . $user->id . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
+            
+            $destPath = public_path('uploads/notes');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0755, true);
+            }
+
+            $file->move($destPath, $filename);
+            $filePath = 'uploads/notes/' . $filename;
+        }
+
+        CourseNote::create([
+            'course_id' => $course->id,
+            'user_id' => $user->id,
+            'title' => $request->title,
+            'file_path' => $filePath,
+        ]);
+
+        Activity::log('note_upload', "Uploaded notes: {$request->title} in {$course->title}");
+
+        return redirect()->back()->with('success', 'Notes uploaded and shared successfully!');
+    }
+
+    /**
+     * Post a question in the course Q&A.
+     */
+    public function askQuestion(Request $request, Course $course)
+    {
+        $request->validate([
+            'question_text' => 'required|string',
+            'question_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
+        ]);
+
+        $user = Auth::user();
+        $imagePath = null;
+
+        if ($request->hasFile('question_image')) {
+            $file = $request->file('question_image');
+            $filename = time() . '_' . $user->id . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
+            
+            $destPath = public_path('uploads/qa');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0755, true);
+            }
+
+            $file->move($destPath, $filename);
+            $imagePath = 'uploads/qa/' . $filename;
+        }
+
+        CourseQuestion::create([
+            'course_id' => $course->id,
+            'user_id' => $user->id,
+            'question_text' => $request->question_text,
+            'image_path' => $imagePath,
+        ]);
+
+        Activity::log('question_ask', "Asked a question in {$course->title}");
+
+        return redirect()->back()->with('success', 'Question posted successfully!');
+    }
+
+    /**
+     * Reply to a course Q&A question.
+     */
+    public function replyQuestion(Request $request, Course $course, CourseQuestion $question)
+    {
+        $request->validate([
+            'answer_text' => 'required|string',
+            'answer_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
+        ]);
+
+        $user = Auth::user();
+        $imagePath = null;
+
+        if ($request->hasFile('answer_image')) {
+            $file = $request->file('answer_image');
+            $filename = time() . '_' . $user->id . '_' . preg_replace('/[^A-Za-z0-9\._-]/', '', $file->getClientOriginalName());
+            
+            $destPath = public_path('uploads/qa');
+            if (!file_exists($destPath)) {
+                mkdir($destPath, 0755, true);
+            }
+
+            $file->move($destPath, $filename);
+            $imagePath = 'uploads/qa/' . $filename;
+        }
+
+        CourseAnswer::create([
+            'course_question_id' => $question->id,
+            'user_id' => $user->id,
+            'answer_text' => $request->answer_text,
+            'image_path' => $imagePath,
+        ]);
+
+        Activity::log('question_reply', "Replied to a question in {$course->title}");
+
+        // Notify the question owner if a teacher replies
+        if ($user->isTeacher() && $question->user_id !== $user->id) {
+            Activity::log('notification', "Teacher replied to your question in {$course->title}", $question->user_id);
+        }
+
+        return redirect()->back()->with('success', 'Reply posted successfully!');
+    }
 }

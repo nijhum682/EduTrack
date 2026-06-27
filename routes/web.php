@@ -50,6 +50,9 @@ Route::middleware(['auth'])->group(function () {
     // Shared Course Workspace Routes (enrolled students & teachers)
     Route::middleware(['course.auth'])->group(function () {
         Route::get('/course/{course}', [App\Http\Controllers\CourseApiController::class, 'showCourseDetails'])->name('course.show');
+        Route::post('/course/{course}/notes', [App\Http\Controllers\CourseApiController::class, 'uploadNote'])->name('course.notes.upload');
+        Route::post('/course/{course}/questions', [App\Http\Controllers\CourseApiController::class, 'askQuestion'])->name('course.questions.ask');
+        Route::post('/course/{course}/questions/{question}/answers', [App\Http\Controllers\CourseApiController::class, 'replyQuestion'])->name('course.questions.reply');
     });
 
     // Teacher Routes
