@@ -152,23 +152,7 @@
                 background-color: #4f46e5 !important;
                 color: #ffffff !important;
             }
-            body.theme-space-light .middleware-box {
-                background: rgba(255, 255, 255, 0.65) !important;
-                border-color: rgba(99, 102, 241, 0.18) !important;
-                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03) !important;
-            }
-            body.theme-space-light .middleware-box span {
-                color: #475569 !important;
-            }
-            body.theme-space-light .middleware-box .text-indigo-400 {
-                color: #4f46e5 !important;
-            }
-            body.theme-space-light .middleware-box #session-activity-time,
-            body.theme-space-light .middleware-box #cookie-activity-time {
-                color: #0f172a !important;
-                font-weight: 700 !important;
-            }
-            
+
             /* Glassmorphism styling variables */
             .glass-panel {
                 background: rgba(15, 23, 42, 0.45);
@@ -297,20 +281,6 @@
                             Manage your course enrollments, complete your assignments, and view your academic performance metrics in real-time.
                         </p>
                     </div>
-                    <!-- Middleware Activity Tracking indicators -->
-                    <div class="middleware-box bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 min-w-[240px] text-xs space-y-2 backdrop-blur-sm">
-                        <div class="text-indigo-400 font-bold uppercase tracking-wider text-[10px]">Activity Trackers (Middleware)</div>
-                        <div class="flex justify-between">
-                            <span class="text-slate-400">Session Last Activity:</span>
-                            <!-- Server-side Session reading -->
-                            <span class="text-slate-200 font-mono" id="session-activity-time">{{ \Carbon\Carbon::parse(session('last_activity'))->diffForHumans() }}</span>
-                        </div>
-                        <div class="flex justify-between border-t border-slate-800/50 pt-2">
-                            <span class="text-slate-400">Cookie Active Time:</span>
-                            <!-- Client-side Cookie reading -->
-                            <span class="text-slate-200 font-mono" id="cookie-activity-time">Reading cookie...</span>
-                        </div>
-                    </div>
                 </div>
                 <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-indigo-600/10 rounded-full blur-3xl -z-1"></div>
             </div>
@@ -331,10 +301,10 @@
                     <p class="text-slate-500 text-[10px] mt-1" id="stat-active-courses-sub">Loading stats...</p>
                 </div>
 
-                <!-- Stat 2: Total Credits -->
+                <!-- Stat 2: Total Course Fees -->
                 <div class="glass-panel rounded-2xl p-6 shadow-md border border-slate-800/80 transition-all duration-300">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Credits</span>
+                        <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Course Fees</span>
                         <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -342,7 +312,7 @@
                         </div>
                     </div>
                     <div class="text-3xl font-extrabold text-white" id="stat-total-credits">-</div>
-                    <p class="text-slate-500 text-[10px] mt-1" id="stat-total-credits-sub">Enrolled hours</p>
+                    <p class="text-slate-500 text-[10px] mt-1" id="stat-total-credits-sub">Total fee for active courses</p>
                 </div>
 
                 <!-- Stat 3: Completed Tasks -->
@@ -377,50 +347,65 @@
                 </div>
             </div>
 
-            <!-- Search, Filter & Workspace layout grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Course Catalog & Workspace Layout Wrapper -->
+            <div class="space-y-8">
                 
-                <!-- LEFT COLUMN: Course Catalog (8 cols) -->
-                <section class="lg:col-span-7 space-y-6">
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                        <!-- Heading -->
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <!-- Full-Width Available Course Catalog -->
+                <section>
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <!-- Heading & Search/Filter Controls -->
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
                             <div>
-                                <h2 class="text-lg font-bold text-white">Available Course Catalog</h2>
-                                <p class="text-xs text-slate-400">Search and filter courses in real-time (MySQL CRUD Read)</p>
+                                <h2 class="text-xl font-extrabold text-white tracking-tight">Available Course Catalog</h2>
+                                <p class="text-xs text-slate-400 mt-1">Search and filter courses in real-time (MySQL CRUD Read)</p>
                             </div>
-                        </div>
-
-                        <!-- SEARCH AND FILTER CONTROLS (Interact with API Controller using JavaScript) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                            <!-- Search query (JavaScript: input event) -->
-                            <div class="sm:col-span-2 relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
+                            
+                            <!-- Search and Filter inputs inline -->
+                            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                <div class="relative w-full sm:w-64">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+                                    <input type="text" id="catalog-search" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 pl-9 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 transition" placeholder="Search by title or course code...">
                                 </div>
-                                <input type="text" id="catalog-search" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 pl-9 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 transition" placeholder="Search by title or course code...">
-                            </div>
-                            <!-- Credit filter (JavaScript: change event) -->
-                            <div>
-                                <select id="catalog-credits" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 focus:outline-none focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 transition cursor-pointer">
-                                    <option value="">All Credits</option>
-                                    <option value="3">3 Credits</option>
-                                    <option value="4">4 Credits</option>
-                                </select>
+                                <div class="w-full sm:w-44">
+                                    <select id="catalog-class" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 focus:outline-none focus:border-indigo-500/80 focus:ring-1 focus:ring-indigo-500/30 transition cursor-pointer">
+                                        <option value="">All Classes</option>
+                                        <option value="Class 8">Class 8</option>
+                                        <option value="Class 9">Class 9</option>
+                                        <option value="Class 10">Class 10</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Course Catalog List (Asynchronously rendered by Javascript) -->
-                        <div id="course-catalog-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                        <div id="course-catalog-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             <!-- Skeleton loader while fetching -->
-                            <div class="text-center py-12 text-slate-500 text-sm">
+                            <div class="text-center py-12 text-slate-500 text-sm col-span-full">
                                 Loading course catalog...
                             </div>
                         </div>
                     </div>
                 </section>
+
+                <!-- User-Specific Courses (Enrolled Courses for Students, Offered Courses for Teachers) -->
+                <section id="user-courses-section" class="hidden">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <div class="mb-6">
+                            <h2 id="user-courses-title" class="text-xl font-extrabold text-white tracking-tight">Enrolled Courses</h2>
+                            <p id="user-courses-subtitle" class="text-xs text-slate-400 mt-1">Courses you are currently participating in</p>
+                        </div>
+                        <div id="user-courses-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Workspace and Classes Layout Grid (Below Course Catalog) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                 <!-- RIGHT COLUMN: Enrolled Courses & Task Board (5 cols) -->
                 <section class="lg:col-span-5 space-y-6">
@@ -451,7 +436,11 @@
                             $studentClasses = \App\Models\ScheduledClass::whereIn('course_id', $enrolledCourseIds)
                                 ->with('course')
                                 ->orderBy('scheduled_at', 'asc')
-                                ->get();
+                                ->get()
+                                ->filter(function ($class) {
+                                    $endTime = $class->scheduled_at->copy()->addMinutes($class->duration_minutes);
+                                    return now()->lessThanOrEqualTo($endTime);
+                                });
                         @endphp
 
                         <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
@@ -503,11 +492,12 @@
                 </section>
 
             </div>
-        </main>
+        </div>
+    </main>
 
         <!-- Footer -->
         <footer class="border-t border-slate-800/80 bg-slate-950/40 py-6 text-center text-xs text-slate-500">
-            <p>&copy; 2026 EduTrack Smart Learning. Handcrafted with modern web architecture (Vite, Laravel, MySQL, AJAX).</p>
+            <p>&copy; 2026 EduTrack</p>
         </footer>
 
         <!-- Javascript AJAX & Frontend Logic: Javascript -->
@@ -515,6 +505,10 @@
             // Document Ready configuration
             document.addEventListener('DOMContentLoaded', function () {
                 
+                // Global role configuration
+                const isStudent = {{ Auth::user()->isStudent() ? 'true' : 'false' }};
+                const currentUserId = {{ Auth::id() }};
+
                 // 1. COOKIE THEME MANAGEMENT
                 const themeToggle = document.getElementById('theme-toggle');
                 const themeName = document.getElementById('theme-name');
@@ -549,24 +543,12 @@
                         ? 'theme-space-light' 
                         : 'theme-space-dark';
                     
-                    document.body.className = newTheme;
+                    document.body.classList.remove('theme-space-dark', 'theme-space-light');
+                    document.body.classList.add(newTheme);
                     setCookie('dashboard_theme', newTheme, 30); // Save cookie for 30 days
                     themeName.textContent = newTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
                 });
 
-                // Display cookie value on screen (Unencrypted cookie tracking)
-                const cookieActivitySpan = document.getElementById('cookie-activity-time');
-                function refreshCookieTimeDisplay() {
-                    const cookieVal = getCookie('user_last_active_time');
-                    if (cookieVal) {
-                        cookieActivitySpan.textContent = cookieVal.split(' ')[1] || cookieVal; // Show HH:MM:SS
-                    } else {
-                        cookieActivitySpan.textContent = 'None';
-                    }
-                }
-                refreshCookieTimeDisplay();
-                // Refresh cookie value check every 10 seconds
-                setInterval(refreshCookieTimeDisplay, 10000);
 
 
                 // 2. TOAST ALERTS SYSTEM
@@ -603,9 +585,15 @@
 
                 // 3. API RETRIEVAL, CRUD AND DYNAMIC UPDATES
                 const catalogSearchInput = document.getElementById('catalog-search');
-                const catalogCreditsSelect = document.getElementById('catalog-credits');
+                const catalogClassSelect = document.getElementById('catalog-class');
                 const courseCatalogList = document.getElementById('course-catalog-list');
                 const workspaceContainer = document.getElementById('workspace-container');
+
+                // User specific course section selectors
+                const userCoursesSection = document.getElementById('user-courses-section');
+                const userCoursesTitle = document.getElementById('user-courses-title');
+                const userCoursesSubtitle = document.getElementById('user-courses-subtitle');
+                const userCoursesList = document.getElementById('user-courses-list');
 
                 // Cache elements for stats
                 const statActiveCourses = document.getElementById('stat-active-courses');
@@ -633,7 +621,7 @@
                                 ? `${stats.active_courses} active program(s)`
                                 : 'No courses joined yet';
                             
-                            statTotalCredits.textContent = stats.total_credits;
+                            statTotalCredits.textContent = stats.total_credits === 0 ? 'Free' : '৳' + stats.total_credits;
                             
                             statTaskPercentage.textContent = `${stats.completion_percentage}%`;
                             statTaskProgressBar.style.width = `${stats.completion_percentage}%`;
@@ -656,15 +644,16 @@
                 // Asynchronous Function: Load Course Catalog & Workspace Courses
                 async function loadCoursesData() {
                     const query = catalogSearchInput.value;
-                    const credits = catalogCreditsSelect.value;
+                    const classVal = catalogClassSelect.value;
                     
                     try {
                         // Retrieve filtered list from API
-                        const response = await fetch(`/api/courses?q=${encodeURIComponent(query)}&credits=${encodeURIComponent(credits)}`);
+                        const response = await fetch(`/api/courses?q=${encodeURIComponent(query)}&class=${encodeURIComponent(classVal)}`);
                         const data = await response.json();
                         
                         if (data.success) {
                             renderCatalog(data.courses);
+                            renderUserCourses(data.courses);
                             renderWorkspace(data.courses.filter(c => c.is_enrolled));
                         }
                     } catch (error) {
@@ -673,11 +662,11 @@
                     }
                 }
 
-                // Helper: Render Course Catalog List (Left Column)
+                // Helper: Render Course Catalog List (Full-Width Card Grid)
                 function renderCatalog(courses) {
                     if (courses.length === 0) {
                         courseCatalogList.innerHTML = `
-                            <div class="text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl">
+                            <div class="text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl col-span-full w-full">
                                 No courses matching your filters.
                             </div>
                         `;
@@ -685,26 +674,88 @@
                     }
 
                     let html = '';
-                    courses.forEach(course => {
-                        const btnClass = course.is_enrolled 
-                            ? 'bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/25' 
-                            : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20';
-                        const btnText = course.is_enrolled ? 'Unenroll' : 'Enroll Now';
-                        const action = course.is_enrolled ? 'unenroll' : 'enroll';
+                    courses.forEach((course, index) => {
+                        let btnClass = '';
+                        let btnText = '';
+                        let action = '';
+                        let isDisabled = '';
+
+                        if (course.is_enrolled) {
+                            if (isStudent) {
+                                // Students cannot unenroll - show disabled/styled "Enrolled" button
+                                btnClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 w-full justify-center cursor-not-allowed';
+                                btnText = 'Enrolled';
+                                action = 'none';
+                                isDisabled = 'disabled';
+                            } else {
+                                // Teachers/admins can unenroll
+                                btnClass = 'bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/25 w-full justify-center';
+                                btnText = 'Unenroll';
+                                action = 'unenroll';
+                            }
+                        } else {
+                            btnClass = 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 w-full justify-center';
+                            btnText = 'Enroll Now';
+                            action = 'enroll';
+                        }
+
+                        // Dynamic background image index (bg1 for 1st course, bg2 for 2nd...)
+                        const bgIndex = (index % 5) + 1;
+                        const bgUrl = course.image_path ? `/${course.image_path}` : `/images/bg${bgIndex}.jpg`;
+
+                        // Rating calculation
+                        const ratingValue = course.average_rating ? course.average_rating.toFixed(1) : '4.5';
 
                         html += `
-                            <div class="glass-card rounded-xl p-5 border border-slate-800/80 transition-all duration-300">
-                                <div class="flex items-start justify-between gap-4">
-                                    <div>
-                                        <div class="flex items-center gap-2 mb-1.5">
-                                            <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-indigo-400 border border-indigo-500/15">${course.code}</span>
-                                            <span class="text-xs text-slate-400 font-medium">${course.credits} Credits</span>
-                                        </div>
-                                        <h3 class="text-md font-semibold text-white mb-1">${course.title}</h3>
-                                        <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-3">${course.description || 'No description available.'}</p>
-                                        <div class="text-[11px] text-slate-500">Instructor: <span class="text-slate-300 font-medium">${course.instructor}</span></div>
+                            <div class="glass-card rounded-[2rem] p-4 border border-slate-800/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between h-full group">
+                                <div>
+                                    <!-- Course Image Box -->
+                                    <div class="relative overflow-hidden rounded-2xl aspect-[1.5] mb-4 bg-slate-955">
+                                        <img src="${bgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${course.title}">
+                                        ${course.class ? `
+                                            <span class="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-600/90 text-white backdrop-blur-sm border border-indigo-400/20 uppercase tracking-wider">
+                                                ${course.class}
+                                            </span>
+                                        ` : ''}
+                                        ${course.subject ? `
+                                            <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold bg-purple-600/90 text-white backdrop-blur-sm border border-purple-400/20 uppercase tracking-wider">
+                                                ${course.subject}
+                                            </span>
+                                        ` : ''}
                                     </div>
-                                    <button data-course-id="${course.id}" data-action="${action}" class="enroll-action-btn px-4 py-2 rounded-lg text-xs font-bold tracking-wide transition cursor-pointer flex-shrink-0 ${btnClass}">
+
+                                    <!-- Provider / Instructor info -->
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700/50">
+                                            <span class="text-[9px] font-bold uppercase">${course.instructor.charAt(0)}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-medium truncate">${course.instructor}</span>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h3 class="text-sm font-bold text-white mb-2 leading-snug line-clamp-2 min-h-[40px] group-hover:text-indigo-400 transition-colors">
+                                        ${course.title}
+                                    </h3>
+                                </div>
+
+                                <!-- Footer details -->
+                                <div class="mt-4 pt-3 border-t border-slate-800/40">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <!-- Price -->
+                                        <span class="text-xs text-slate-200 font-extrabold">
+                                            ${course.enrollment_fee == 0 ? 'Free' : '৳' + course.enrollment_fee}
+                                        </span>
+                                        <!-- Rating -->
+                                        <div class="flex items-center gap-1 text-xs font-bold text-amber-400">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span>${ratingValue}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Button -->
+                                    <button data-course-id="${course.id}" data-action="${action}" data-enrollment-fee="${course.enrollment_fee || 0}" ${isDisabled} class="enroll-action-btn flex items-center px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition cursor-pointer ${btnClass}">
                                         ${btnText}
                                     </button>
                                 </div>
@@ -718,6 +769,100 @@
                     document.querySelectorAll('.enroll-action-btn').forEach(btn => {
                         btn.addEventListener('click', handleEnrollAction);
                     });
+                }
+
+                // Helper: Render User-Specific Courses Grid (Offered/Enrolled)
+                function renderUserCourses(courses) {
+                    let filtered = [];
+                    if (isStudent) {
+                        filtered = courses.filter(c => c.is_enrolled);
+                        userCoursesTitle.textContent = 'Enrolled Courses';
+                        userCoursesSubtitle.textContent = 'Courses you are currently participating in';
+                    } else {
+                        filtered = courses.filter(c => c.instructor_id === currentUserId);
+                        userCoursesTitle.textContent = 'Offered Courses';
+                        userCoursesSubtitle.textContent = 'Courses you are currently instructing';
+                    }
+
+                    if (filtered.length === 0) {
+                        userCoursesSection.classList.add('hidden');
+                        return;
+                    }
+
+                    userCoursesSection.classList.remove('hidden');
+
+                    let html = '';
+                    filtered.forEach((course, index) => {
+                        // Dynamic background image index (bg1 for 1st course, bg2 for 2nd...)
+                        const bgIndex = (index % 5) + 1;
+                        const bgUrl = course.image_path ? `/${course.image_path}` : `/images/bg${bgIndex}.jpg`;
+
+                        // Rating calculation
+                        const ratingValue = course.average_rating ? course.average_rating.toFixed(1) : '4.5';
+
+                        // Action details
+                        const btnText = isStudent ? 'Go to Workspace ↗' : 'Manage Course ↗';
+                        const btnLink = `/course/${course.id}`;
+                        const btnClass = 'bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-400 border border-indigo-500/25 w-full justify-center py-2 rounded-xl text-xs font-bold transition flex items-center cursor-pointer';
+
+                        html += `
+                            <div class="glass-card rounded-[2rem] p-4 border border-slate-800/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between h-full group">
+                                <div>
+                                    <!-- Course Image Box -->
+                                    <div class="relative overflow-hidden rounded-2xl aspect-[1.5] mb-4 bg-slate-955">
+                                        <img src="${bgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${course.title}">
+                                        ${course.class ? `
+                                            <span class="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-600/90 text-white backdrop-blur-sm border border-indigo-400/20 uppercase tracking-wider">
+                                                ${course.class}
+                                            </span>
+                                        ` : ''}
+                                        ${course.subject ? `
+                                            <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold bg-purple-600/90 text-white backdrop-blur-sm border border-purple-400/20 uppercase tracking-wider">
+                                                ${course.subject}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+
+                                    <!-- Provider / Instructor info -->
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700/50">
+                                            <span class="text-[9px] font-bold uppercase">${course.instructor.charAt(0)}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-medium truncate">${course.instructor}</span>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h3 class="text-sm font-bold text-white mb-2 leading-snug line-clamp-2 min-h-[40px] group-hover:text-indigo-400 transition-colors">
+                                        ${course.title}
+                                    </h3>
+                                </div>
+
+                                <!-- Footer details -->
+                                <div class="mt-4 pt-3 border-t border-slate-800/40">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <!-- Price -->
+                                        <span class="text-xs text-slate-200 font-extrabold">
+                                            ${course.enrollment_fee == 0 ? 'Free' : '৳' + course.enrollment_fee}
+                                        </span>
+                                        <!-- Rating -->
+                                        <div class="flex items-center gap-1 text-xs font-bold text-amber-400">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span>${ratingValue}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Link Button -->
+                                    <a href="${btnLink}" class="${btnClass}">
+                                        ${btnText}
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    userCoursesList.innerHTML = html;
                 }
 
                 // Helper: Render My Enrolled Workspace & Task Completion Lists (Right Column)
@@ -917,8 +1062,8 @@
                     }, 300); // Wait 300ms after user stops typing
                 });
 
-                // Credit Select Change Event
-                catalogCreditsSelect.addEventListener('change', loadCoursesData);
+                // Class Select Change Event
+                catalogClassSelect.addEventListener('change', loadCoursesData);
 
 
                 // 4. BOOTSTRAP INITIAL DATA
@@ -956,7 +1101,7 @@
         </script>
 
         <!-- Notifications Modal (Glassmorphic) -->
-        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[85vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
@@ -993,7 +1138,7 @@
         </div>
 
         <!-- Profile Modal (Glassmorphic) -->
-        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[90vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">

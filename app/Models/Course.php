@@ -20,7 +20,11 @@ class Course extends Model
         'description',
         'instructor',
         'instructor_id',
-        'credits'
+        'credits',
+        'enrollment_fee',
+        'class',
+        'image_path',
+        'subject'
     ];
 
     /**
