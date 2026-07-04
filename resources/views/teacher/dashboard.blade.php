@@ -311,7 +311,7 @@
             </div>
 
             <!-- Stats Bar -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
                 <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
                     <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">My Courses</span>
                     <span class="text-3xl font-extrabold text-white">{{ $courses->count() }}</span>
@@ -321,104 +321,126 @@
                     <span class="text-3xl font-extrabold text-white">{{ $courses->sum('enrolled_users_count') }}</span>
                 </div>
                 <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
-                    <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">Total Tasks Created</span>
-                    <span class="text-3xl font-extrabold text-white">{{ $tasks->count() }}</span>
-                </div>
-                <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
                     <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">Pending Evaluations</span>
                     <span class="text-3xl font-extrabold text-amber-400">{{ $submissions->whereNull('score')->count() }}</span>
                 </div>
             </div>
 
             <!-- Dashboard Modules (Tabs) -->
-            <div class="flex gap-2 border-b border-slate-800/80 mb-6 overflow-x-auto pb-1">
+            <div class="flex gap-2 border-b border-slate-800/80 mb-6 overflow-x-auto pb-px max-w-3xl mx-auto">
                 <button onclick="switchTab('courses-tab')" id="courses-tab-btn" class="tab-btn active px-4 py-2 border border-transparent rounded-xl text-sm font-semibold transition whitespace-nowrap cursor-pointer">
-                    ðŸ“š Courses & Tasks
+                    📚 Courses & Tasks
                 </button>
                 <button onclick="switchTab('evaluations-tab')" id="evaluations-tab-btn" class="tab-btn px-4 py-2 border border-transparent rounded-xl text-sm font-semibold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5">
-                    ðŸ“ Evaluate Submissions 
+                    📝 Evaluate Submissions 
                     @if($submissions->whereNull('score')->count() > 0)
                         <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                     @endif
                 </button>
                 <button onclick="switchTab('classes-tab')" id="classes-tab-btn" class="tab-btn px-4 py-2 border border-transparent rounded-xl text-sm font-semibold transition whitespace-nowrap cursor-pointer">
-                    ðŸŽ¥ Schedule & Start Classes
+                    📅 Schedule & Start Classes
                 </button>
             </div>
 
             <!-- TAB 1: Courses & Tasks -->
             <div id="courses-tab" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Create Course and Task Forms -->
-                    <div class="lg:col-span-1 space-y-6">
-                        <!-- Create Course Form -->
-                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                            <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs">ï¼‹</span>
-                                Add New Course
-                            </h2>
-                            <form action="{{ route('teacher.courses.create') }}" method="POST" class="space-y-4">
-                                @csrf
+                <!-- Center aligned elegant Course Creator -->
+                <div class="max-w-3xl mx-auto">
+                    <!-- Create Course Form -->
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs">+</span>
+                            Add New Course
+                        </h2>
+                        <form action="{{ route('teacher.courses.create') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Course Title</label>
+                                <input type="text" name="title" required placeholder="e.g. Operating Systems" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Course Title</label>
-                                    <input type="text" name="title" required placeholder="e.g. Operating Systems" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Course Code</label>
+                                    <input type="text" name="code" required placeholder="e.g. CS302" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Course Code</label>
-                                        <input type="text" name="code" required placeholder="e.g. CS302" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
+                                <div>
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Course Fee (৳)</label>
+                                    <input type="number" name="enrollment_fee" required min="0" value="0" placeholder="e.g. 500" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Class</label>
+                                    <select name="class" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-purple-500 transition cursor-pointer">
+                                        <option value="Class 8">Class 8</option>
+                                        <option value="Class 9">Class 9</option>
+                                        <option value="Class 10">Class 10</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Cover Image upload segment -->
+                                <div>
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Course Cover Image</label>
+                                    <input type="file" name="course_image" accept="image/*" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-purple-500 transition cursor-pointer file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-500/10 file:text-purple-400 hover:file:bg-purple-500/20">
+                                </div>
+                                <!-- Subject input segment -->
+                                <div>
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Subject</label>
+                                    <input type="text" name="subject" required placeholder="e.g. Science, Mathematics, English" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Description</label>
+                                <textarea name="description" placeholder="Brief details about the syllabus..." rows="2" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-purple-600/20 active:scale-[0.98] transition cursor-pointer">
+                                Create Course
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Course Catalog & Workspace Layout Wrapper -->
+                <div class="space-y-8 mt-8">
+                    
+                    <!-- Full-Width Available Course Catalog -->
+                    <section>
+                        <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                            <!-- Heading & Search/Filter Controls -->
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+                                <div>
+                                    <h2 class="text-xl font-extrabold text-white tracking-tight">Available Course Catalog</h2>
+                                    <p class="text-xs text-slate-400 mt-1">Search and filter courses in real-time (MySQL CRUD Read)</p>
+                                </div>
+                                
+                                <!-- Search and Filter inputs inline -->
+                                <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                                    <div class="relative w-full sm:w-64">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </div>
+                                        <input type="text" id="catalog-search" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 pl-9 pr-4 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition" placeholder="Search by title or course code...">
                                     </div>
-                                    <div>
-                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Credits</label>
-                                        <select name="credits" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-purple-500 transition cursor-pointer">
-                                            <option value="3">3 Credits</option>
-                                            <option value="4">4 Credits</option>
-                                            <option value="2">2 Credits</option>
-                                            <option value="1">1 Credit</option>
+                                    <div class="w-full sm:w-44">
+                                        <select id="catalog-class" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-purple-500 transition cursor-pointer">
+                                            <option value="">All Classes</option>
+                                            <option value="Class 8">Class 8</option>
+                                            <option value="Class 9">Class 9</option>
+                                            <option value="Class 10">Class 10</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Description</label>
-                                    <textarea name="description" placeholder="Brief details about the syllabus..." rows="2" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition"></textarea>
-                                </div>
-                                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-purple-600/20 active:scale-[0.98] transition cursor-pointer">
-                                    Create Course
-                                </button>
-                            </form>
-                        </div>
+                            </div>
 
-                        <!-- Create Tasks & Exams Widget -->
-                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg space-y-4">
-                            <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">ï¼‹</span>
-                                Create Tasks & Exams
-                            </h2>
-                            <p class="text-xs text-slate-400 leading-relaxed">Design custom coursework assignments or launch Google-Form style examinations with distinct marks distribution.</p>
-                            
-                            @if($courses->count() === 0)
-                                <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-[11px] text-amber-400 flex items-start gap-2 leading-relaxed">
-                                    <span>âš ï¸</span>
-                                    <div>
-                                        <strong>No Courses Active:</strong> Please create a course first using the form on the left to activate task and exam creations.
-                                    </div>
+                            <!-- Course Catalog List (Asynchronously rendered by Javascript) -->
+                            <div id="course-catalog-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                <!-- Skeleton loader while fetching -->
+                                <div class="text-center py-12 text-slate-500 text-sm col-span-full">
+                                    Loading course catalog...
                                 </div>
-                            @endif
-
-                            <div class="space-y-3 pt-1">
-                                <!-- Button 1: Create Standard Assignment -->
-                                <button onclick="openStandardTaskModal()" @disabled($courses->count() === 0) class="w-full bg-slate-900 hover:bg-slate-850/80 border border-slate-700/60 text-slate-200 hover:text-white font-semibold text-xs rounded-xl py-3.5 shadow-md flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-40 disabled:bg-slate-950 disabled:text-slate-600 disabled:border-slate-900 disabled:cursor-not-allowed disabled:shadow-none">
-                                    ðŸ“ Create Standard Assignment
-                                </button>
-                                
-                                <!-- Button 2: Create Google-Form Test -->
-                                <button onclick="openTestBuilderModal()" @disabled($courses->count() === 0) class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs rounded-xl py-3.5 shadow-lg shadow-indigo-600/20 active:scale-[0.98] flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-40 disabled:from-slate-800 disabled:to-slate-850 disabled:text-slate-600 disabled:cursor-not-allowed disabled:shadow-none">
-                                    âš¡ Create Google-Form Style Test
-                                </button>
                             </div>
                         </div>
-                    </div>
-
                     <!-- Right: Courses & Tasks List -->
                     <div class="lg:col-span-2 space-y-6">
                         <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
@@ -465,12 +487,12 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
 
             <!-- TAB 2: Evaluations -->
-            <div id="evaluations-tab" class="tab-content hidden space-y-6">
+            <div id="evaluations-tab" class="tab-content hidden space-y-6 max-w-3xl mx-auto">
                 <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
                     <div class="mb-6">
                         <h2 class="text-base font-bold text-white">Student Submission Evaluation Console</h2>
@@ -521,7 +543,7 @@
                                             <td class="py-4 px-4">
                                                 @if(is_null($sub->score))
                                                     <span class="text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20 text-[10px]">
-                                                        â³ Pending Evaluation
+                                                        ⏳ Pending Evaluation
                                                     </span>
                                                 @else
                                                     <div class="font-bold text-emerald-400 text-sm">
@@ -559,119 +581,116 @@
 
             <!-- TAB 3: Schedule & Take Classes -->
             <div id="classes-tab" class="tab-content hidden space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left: Schedule Class Form -->
-                    <div class="lg:col-span-1">
-                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                            <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                <span class="w-6 h-6 rounded bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">ðŸŽ¥</span>
-                                Schedule Virtual Class
-                            </h2>
-                            <form action="{{ route('teacher.classes.create') }}" method="POST" class="space-y-4">
-                                @csrf
+                <!-- Top: Schedule Class Form (Standard Width) -->
+                <div class="max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">🎥</span>
+                            Schedule Virtual Class
+                        </h2>
+                        <form action="{{ route('teacher.classes.create') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Target Course</label>
+                                <select name="course_id" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
+                                    @if($courses->count() === 0)
+                                        <option value="">-- Create a Course First --</option>
+                                    @else
+                                        @foreach($courses as $c)
+                                            <option value="{{ $c->id }}">{{ $c->code }} &middot; {{ $c->title }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Class Topic / Title</label>
+                                <input type="text" name="title" required placeholder="e.g. Chapter 4: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
+                                <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Target Course</label>
-                                    <select name="course_id" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
-                                        @if($courses->count() === 0)
-                                            <option value="">-- Create a Course First --</option>
-                                        @else
-                                            @foreach($courses as $c)
-                                                <option value="{{ $c->id }}">{{ $c->code }} &middot; {{ $c->title }}</option>
-                                            @endforeach
-                                        @endif
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
+                                    <input type="number" name="duration_minutes" required value="60" min="15" max="180" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Platform</label>
+                                    <select name="platform" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
+                                        <option value="In-App Classroom">In-App Virtual Room</option>
+                                        <option value="Zoom">Zoom Meeting</option>
+                                        <option value="Google Meet">Google Meet</option>
+                                        <option value="Microsoft Teams">Microsoft Teams</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Class Topic / Title</label>
-                                    <input type="text" name="title" required placeholder="e.g. Chapter 4: Database Normalization" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
-                                    <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition">
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
-                                        <input type="number" name="duration_minutes" required value="60" min="15" max="180" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Platform</label>
-                                        <select name="platform" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
-                                            <option value="In-App Classroom">In-App Virtual Room</option>
-                                            <option value="Zoom">Zoom Meeting</option>
-                                            <option value="Google Meet">Google Meet</option>
-                                            <option value="Microsoft Teams">Microsoft Teams</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Meeting Link (Optional)</label>
-                                    <input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                                </div>
-                                <button type="submit" @disabled($courses->count() === 0) class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-pink-600/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50">
-                                    Schedule Class Session
-                                </button>
-                            </form>
-                        </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Meeting Link (Optional)</label>
+                                <input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <button type="submit" @disabled($courses->count() === 0) class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-pink-600/20 active:scale-[0.98] transition cursor-pointer disabled:opacity-50">
+                                Schedule Class Session
+                            </button>
+                        </form>
                     </div>
+                </div>
 
-                    <!-- Right: Scheduled Classes list -->
-                    <div class="lg:col-span-2">
-                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                            <h2 class="text-base font-bold text-white mb-4">Class Schedule & Host Console</h2>
-                            
-                            @if($scheduledClasses->count() === 0)
-                                <div class="text-center py-16 text-slate-500 text-sm">
-                                    No classes scheduled yet. Create one using the scheduling form on the left.
-                                </div>
-                            @else
-                                <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
-                                    @foreach($scheduledClasses as $class)
-                                        <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/80 bg-slate-900/20' }} rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
-                                            <div class="space-y-1">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                                        {{ $class->course->code }}
-                                                    </span>
-                                                    <span class="text-xs text-slate-400">Duration: {{ $class->duration_minutes }} Mins</span>
-                                                    @if($class->is_active)
-                                                        <span class="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
-                                                            <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <h3 class="text-sm font-bold text-white">{{ $class->title }}</h3>
-                                                <p class="text-[10px] text-slate-500">
-                                                    Scheduled: {{ $class->scheduled_at->format('M d, Y - H:i') }} ({{ $class->scheduled_at->diffForHumans() }})
-                                                </p>
-                                                <p class="text-[10px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></p>
-                                            </div>
-
+                <!-- Bottom: Live Class Schedule (Standard Width) -->
+                <div class="max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4">Live Class Schedule</h2>
+                        
+                        @if($scheduledClasses->count() === 0)
+                            <div class="text-center py-16 text-slate-500 text-sm">
+                                No classes scheduled yet. Create one using the scheduling form on the left.
+                            </div>
+                        @else
+                            <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
+                                @foreach($scheduledClasses as $class)
+                                    <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/80 bg-slate-900/20' }} rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
+                                        <div class="space-y-1">
                                             <div class="flex items-center gap-2">
-                                                <!-- Start / End Toggle Button -->
-                                                <form action="{{ route('teacher.classes.toggle-active', $class->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="text-xs px-3.5 py-2 font-bold rounded-lg transition border cursor-pointer {{ $class->is_active ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60' : 'bg-pink-600 hover:bg-pink-500 text-white border-pink-500/20 shadow-md shadow-pink-600/10' }}">
-                                                        {{ $class->is_active ? 'â¹ End Session' : 'â–¶ Start Class' }}
-                                                    </button>
-                                                </form>
-
-                                                <!-- Enter Classroom Simulation -->
-                                                @if($class->platform === 'In-App Classroom')
-                                                    <a href="{{ route('classroom', $class->id) }}" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-3.5 rounded-lg border border-purple-500/20 transition cursor-pointer shadow-md shadow-purple-600/10">
-                                                        ðŸ’» Launch Classroom
-                                                    </a>
-                                                @elseif($class->meeting_link)
-                                                    <a href="{{ $class->meeting_link }}" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
-                                                        ðŸ”— External Link
-                                                    </a>
+                                                <span class="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                                    {{ $class->course->code }}
+                                                </span>
+                                                <span class="text-xs text-slate-400">Duration: {{ $class->duration_minutes }} Mins</span>
+                                                @if($class->is_active)
+                                                    <span class="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
+                                                    </span>
                                                 @endif
                                             </div>
+                                            <h3 class="text-sm font-bold text-white">{{ $class->title }}</h3>
+                                            <p class="text-[10px] text-slate-500">
+                                                Scheduled: {{ $class->scheduled_at->format('M d, Y - H:i') }} ({{ $class->scheduled_at->diffForHumans() }})
+                                            </p>
+                                            <p class="text-[10px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></p>
+                                         <div class="flex items-center gap-2">
+                                            <!-- Start / End Toggle Button -->
+                                            <form action="{{ route('teacher.classes.toggle-active', $class->id) }}" method="POST">
+                                                @csrf
+                                                <button type="submit" class="text-xs px-3.5 py-2 font-bold rounded-lg transition border cursor-pointer {{ $class->is_active ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60' : 'bg-pink-600 hover:bg-pink-500 text-white border-pink-500/20 shadow-md shadow-pink-600/10' }}">
+                                                    {{ $class->is_active ? '⏹ End Session' : '▶ Start Class' }}
+                                                </button>
+                                            </form>
+
+                                            <!-- Enter Classroom Simulation -->
+                                            @if($class->platform === 'In-App Classroom')
+                                                <a href="{{ route('classroom', $class->id) }}" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-3.5 rounded-lg border border-purple-500/20 transition cursor-pointer shadow-md shadow-purple-600/10">
+                                                    💻 Launch Classroom
+                                                </a>
+                                            @elseif($class->meeting_link)
+                                                <a href="{{ $class->meeting_link }}" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
+                                                    🔗 External Link
+                                                </a>
+                                            @endif
                                         </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -679,7 +698,7 @@
         </main>
 
         <!-- Standard Task Modal -->
-        <div id="standard-task-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div id="standard-task-modal" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm hidden items-center justify-center p-4">
             <div class="glass-panel w-full max-w-md rounded-2xl border border-slate-800 p-6 shadow-2xl relative">
                 <button onclick="closeStandardTaskModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer">&times;</button>
                 <h3 class="text-lg font-bold text-white mb-4">Create Standard Assignment</h3>
@@ -719,7 +738,7 @@
         </div>
 
         <!-- Test Builder Modal (Google Forms style) -->
-        <div id="test-builder-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div id="test-builder-modal" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
             <div class="glass-panel w-full max-w-3xl rounded-2xl border border-slate-800 p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
                 <button onclick="closeTestBuilderModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer z-10">&times;</button>
                 
@@ -750,7 +769,7 @@
                         </div>
                         <div class="md:col-span-5">
                             <label class="block text-xs text-slate-400 font-semibold mb-1">Test Title</label>
-                            <input type="text" name="title" required placeholder="e.g. Midterm: Database Normalization" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                            <input type="text" name="title" required placeholder="e.g. Midterm: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
                         </div>
                         <div class="md:col-span-3">
                             <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Minutes)</label>
@@ -774,7 +793,7 @@
                         <div class="flex items-center justify-between">
                             <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions List</h4>
                             <button type="button" onclick="addQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-1.5 px-3.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10">
-                                ï¼‹ Add Question
+                                + Add Question
                             </button>
                         </div>
 
@@ -798,7 +817,7 @@
         </div>
 
         <!-- Evaluation / Grading Modal -->
-        <div id="grading-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
+        <div id="grading-modal" class="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
             <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-800 p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
                 <button onclick="closeGradingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer z-10">&times;</button>
                 
@@ -879,13 +898,23 @@
 
         <!-- Footer -->
         <footer class="border-t border-slate-800/80 bg-slate-950/40 py-6 text-center text-xs text-slate-500">
-            <p>&copy; 2026 EduTrack Smart Learning. Handcrafted with modern web architecture (Vite, Laravel, SQLite, AJAX).</p>
+            <p>&copy; 2026 EduTrack</p>
         </footer>
 
         <!-- Scripts -->
         <script>
             // TAB SWITCHING
             function switchTab(tabId) {
+                const tabEl = document.getElementById(tabId);
+                const btnEl = document.getElementById(tabId + '-btn');
+                
+                if (!tabEl || !btnEl) {
+                    if (tabId !== 'courses-tab') {
+                        switchTab('courses-tab');
+                    }
+                    return;
+                }
+
                 document.querySelectorAll('.tab-content').forEach(tab => {
                     tab.classList.add('hidden');
                 });
@@ -893,16 +922,20 @@
                     btn.classList.remove('active');
                 });
                 
-                document.getElementById(tabId).classList.remove('hidden');
-                document.getElementById(tabId + '-btn').classList.add('active');
+                tabEl.classList.remove('hidden');
+                btnEl.classList.add('active');
                 
                 // Save active tab preference
                 localStorage.setItem('teacher_active_tab', tabId);
             }
 
             // Standard Task Modals
-            function openStandardTaskModal() {
+            function openStandardTaskModal(courseId = null) {
                 const modal = document.getElementById('standard-task-modal');
+                if (courseId) {
+                    const select = modal.querySelector('select[name="course_id"]');
+                    if (select) select.value = courseId;
+                }
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
@@ -913,8 +946,12 @@
             }
 
             // Test Builder Modals
-            function openTestBuilderModal() {
+            function openTestBuilderModal(courseId = null) {
                 const modal = document.getElementById('test-builder-modal');
+                if (courseId) {
+                    const select = modal.querySelector('select[name="course_id"]');
+                    if (select) select.value = courseId;
+                }
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 
@@ -939,7 +976,7 @@
                 qBlock.id = `q-block-${index}`;
                 qBlock.className = 'bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 space-y-4 relative shadow-md';
                 qBlock.innerHTML = `
-                    <button type="button" onclick="removeQuestion(${index})" class="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer">ðŸ—‘ Delete</button>
+                    <button type="button" onclick="removeQuestion(${index})" class="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer">🗑️ Delete</button>
                     
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
                         <div class="md:col-span-7">
@@ -975,7 +1012,7 @@
                                 <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
                             </div>
                         </div>
-                        <button type="button" onclick="addOption(${index})" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">ï¼‹ Add Choice Option</button>
+                        <button type="button" onclick="addOption(${index})" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">+ Add Choice Option</button>
                     </div>
                 `;
                 
@@ -1199,7 +1236,8 @@
                         ? 'theme-space-light' 
                         : 'theme-space-dark';
                     
-                    document.body.className = newTheme;
+                    document.body.classList.remove('theme-space-dark', 'theme-space-light');
+                    document.body.classList.add(newTheme);
                     setCookie('dashboard_theme', newTheme, 30);
                     themeName.textContent = newTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
                 // Automatically dismiss toasts after 5 seconds
@@ -1209,6 +1247,317 @@
                         setTimeout(() => toast.remove(), 500);
                     }, 5000);
                 });
+
+                // --- COURSE CATALOG DYNAMIC FETCHING & RENDERING ---
+                
+                // Global role configuration
+                const isStudent = {{ Auth::user()->isStudent() ? 'true' : 'false' }};
+                const currentUserId = {{ Auth::id() }};
+                const currentUserName = @json(Auth::user()->name);
+
+                const catalogSearchInput = document.getElementById('catalog-search');
+                const catalogClassSelect = document.getElementById('catalog-class');
+                const courseCatalogList = document.getElementById('course-catalog-list');
+
+                // User specific course section selectors
+                const userCoursesSection = document.getElementById('user-courses-section');
+                const userCoursesTitle = document.getElementById('user-courses-title');
+                const userCoursesSubtitle = document.getElementById('user-courses-subtitle');
+                const userCoursesList = document.getElementById('user-courses-list');
+                
+                // Get CSRF Token
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                const toastContainer = document.getElementById('toast-container');
+
+                // Dynamic Toast System for Teacher Dashboard
+                function showToast(message, type = 'success') {
+                    if (!toastContainer) return;
+                    const toast = document.createElement('div');
+                    toast.className = `toast-item ${type === 'success' ? 'bg-emerald-950/90 border border-emerald-500/30 text-emerald-400' : 'bg-rose-950/90 border border-rose-500/30 text-rose-400'} px-4 py-3 rounded-xl shadow-2xl flex items-center justify-between gap-3 backdrop-blur-md transition-all duration-500 opacity-0 transform translate-y-2`;
+                    toast.innerHTML = `
+                        <span class="text-sm font-medium">${message}</span>
+                        <button onclick="this.parentElement.remove()" class="hover:text-white font-bold">&times;</button>
+                    `;
+                    toastContainer.appendChild(toast);
+                    
+                    // Trigger reflow & transition animate-in
+                    setTimeout(() => {
+                        toast.classList.remove('opacity-0', 'translate-y-2');
+                    }, 50);
+                    
+                    // Automatically dismiss after 5 seconds
+                    setTimeout(() => {
+                        toast.classList.add('opacity-0', 'translate-y-2');
+                        setTimeout(() => toast.remove(), 500);
+                    }, 5000);
+                }
+
+                // Asynchronous Function: Load Course Catalog
+                async function loadCoursesData() {
+                    const query = catalogSearchInput.value;
+                    const classVal = catalogClassSelect.value;
+                    
+                    try {
+                        const response = await fetch(`/api/courses?q=${encodeURIComponent(query)}&class=${encodeURIComponent(classVal)}`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            renderCatalog(data.courses);
+                            renderUserCourses(data.courses);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching courses:', error);
+                        courseCatalogList.innerHTML = `<div class="text-center py-6 text-red-400 text-sm">Failed to connect to API server.</div>`;
+                    }
+                }
+
+                // Helper: Render Course Catalog List (Full-Width Card Grid)
+                function renderCatalog(courses) {
+                    if (courses.length === 0) {
+                        courseCatalogList.innerHTML = `
+                            <div class="text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-xl col-span-full w-full">
+                                No courses matching your filters.
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = '';
+                    courses.forEach((course, index) => {
+                        let btnClass = '';
+                        let btnText = '';
+                        let action = '';
+                        let isDisabled = '';
+
+                        if (course.is_enrolled) {
+                            if (isStudent) {
+                                btnClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 w-full justify-center cursor-not-allowed';
+                                btnText = 'Enrolled';
+                                action = 'none';
+                                isDisabled = 'disabled';
+                            } else {
+                                btnClass = 'bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/25 w-full justify-center';
+                                btnText = 'Unenroll';
+                                action = 'unenroll';
+                            }
+                        } else {
+                            btnClass = 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 w-full justify-center';
+                            btnText = 'Enroll Now';
+                            action = 'enroll';
+                        }
+
+                        // Dynamic background image index (bg1 for 1st course, bg2 for 2nd...)
+                        const bgIndex = (index % 5) + 1;
+                        const bgUrl = course.image_path ? `/${course.image_path}` : `/images/bg${bgIndex}.jpg`;
+
+                        // Rating calculation
+                        const ratingValue = course.average_rating ? course.average_rating.toFixed(1) : '4.5';
+
+                        html += `
+                            <div class="glass-card rounded-[2rem] p-4 border border-slate-800/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between h-full group">
+                                <div>
+                                    <!-- Course Image Box -->
+                                    <div class="relative overflow-hidden rounded-2xl aspect-[1.5] mb-4 bg-slate-955">
+                                        <img src="${bgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${course.title}">
+                                        ${course.class ? `
+                                            <span class="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-600/90 text-white backdrop-blur-sm border border-indigo-400/20 uppercase tracking-wider">
+                                                ${course.class}
+                                            </span>
+                                        ` : ''}
+                                        ${course.subject ? `
+                                            <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold bg-purple-600/90 text-white backdrop-blur-sm border border-purple-400/20 uppercase tracking-wider">
+                                                ${course.subject}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+
+                                    <!-- Provider / Instructor info -->
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700/50">
+                                            <span class="text-[9px] font-bold uppercase">${course.instructor.charAt(0)}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-medium truncate">${course.instructor}</span>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h3 class="text-sm font-bold text-white mb-2 leading-snug line-clamp-2 min-h-[40px] group-hover:text-indigo-400 transition-colors">
+                                        ${course.title}
+                                    </h3>
+                                </div>
+
+                                <!-- Footer details -->
+                                <div class="mt-4 pt-3 border-t border-slate-800/40">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <!-- Price -->
+                                        <span class="text-xs text-slate-200 font-extrabold">
+                                            ${course.enrollment_fee == 0 ? 'Free' : '৳' + course.enrollment_fee}
+                                        </span>
+                                        <!-- Rating -->
+                                        <div class="flex items-center gap-1 text-xs font-bold text-amber-400">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span>${ratingValue}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Action Button -->
+                                    <button data-course-id="${course.id}" data-action="${action}" data-enrollment-fee="${course.enrollment_fee || 0}" ${isDisabled} class="enroll-action-btn flex items-center px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition cursor-pointer ${btnClass}">
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    courseCatalogList.innerHTML = html;
+
+                    // Bind action listeners to newly created catalog buttons
+                    document.querySelectorAll('.enroll-action-btn').forEach(btn => {
+                        btn.addEventListener('click', handleEnrollAction);
+                    });
+                }
+
+                // Helper: Render User-Specific Courses Grid (Offered/Enrolled)
+                function renderUserCourses(courses) {
+                    let filtered = [];
+                    if (isStudent) {
+                        filtered = courses.filter(c => c.is_enrolled);
+                        userCoursesTitle.textContent = 'Enrolled Courses';
+                        userCoursesSubtitle.textContent = 'Courses you are currently participating in';
+                    } else {
+                        filtered = courses.filter(c => c.instructor_id == currentUserId || c.instructor === currentUserName);
+                        userCoursesTitle.textContent = 'Offered Courses';
+                        userCoursesSubtitle.textContent = 'Courses you are currently instructing';
+                    }
+
+                    if (filtered.length === 0) {
+                        userCoursesSection.classList.add('hidden');
+                        return;
+                    }
+
+                    userCoursesSection.classList.remove('hidden');
+
+                    let html = '';
+                    filtered.forEach((course, index) => {
+                        const bgIndex = (index % 5) + 1;
+                        const bgUrl = course.image_path ? `/${course.image_path}` : `/images/bg${bgIndex}.jpg`;
+
+                        const ratingValue = course.average_rating ? course.average_rating.toFixed(1) : '4.5';
+
+                        const btnText = isStudent ? 'Go to Workspace ↗' : 'Manage Course ↗';
+                        const btnLink = `/course/${course.id}`;
+                        const btnClass = 'bg-indigo-500/10 hover:bg-indigo-500/25 text-indigo-400 border border-indigo-500/25 w-full justify-center py-2 rounded-xl text-xs font-bold transition flex items-center cursor-pointer';
+
+                        html += `
+                            <div class="glass-card rounded-[2rem] p-4 border border-slate-800/80 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl flex flex-col justify-between h-full group">
+                                <div>
+                                    <!-- Course Image Box -->
+                                    <div class="relative overflow-hidden rounded-2xl aspect-[1.5] mb-4 bg-slate-955">
+                                        <img src="${bgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="${course.title}">
+                                        ${course.class ? `
+                                            <span class="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-bold bg-indigo-600/90 text-white backdrop-blur-sm border border-indigo-400/20 uppercase tracking-wider">
+                                                ${course.class}
+                                            </span>
+                                        ` : ''}
+                                        ${course.subject ? `
+                                            <span class="absolute top-3 right-3 px-2 py-0.5 rounded text-[9px] font-bold bg-purple-600/90 text-white backdrop-blur-sm border border-purple-400/20 uppercase tracking-wider">
+                                                ${course.subject}
+                                            </span>
+                                        ` : ''}
+                                    </div>
+
+                                    <!-- Provider / Instructor info -->
+                                    <div class="flex items-center gap-1.5 mb-2">
+                                        <div class="w-4 h-4 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center border border-slate-700/50">
+                                            <span class="text-[9px] font-bold uppercase">${course.instructor.charAt(0)}</span>
+                                        </div>
+                                        <span class="text-[10px] text-slate-400 font-medium truncate">${course.instructor}</span>
+                                    </div>
+
+                                    <!-- Title -->
+                                    <h3 class="text-sm font-bold text-white mb-2 leading-snug line-clamp-2 min-h-[40px] group-hover:text-indigo-400 transition-colors">
+                                        ${course.title}
+                                    </h3>
+                                </div>
+
+                                <!-- Footer details -->
+                                <div class="mt-4 pt-3 border-t border-slate-800/40">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <!-- Price -->
+                                        <span class="text-xs text-slate-200 font-extrabold">
+                                            ${course.enrollment_fee == 0 ? 'Free' : '৳' + course.enrollment_fee}
+                                        </span>
+                                        <!-- Rating -->
+                                        <div class="flex items-center gap-1 text-xs font-bold text-amber-400">
+                                            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                            </svg>
+                                            <span>${ratingValue}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Link Button -->
+                                    <a href="${btnLink}" class="${btnClass}">
+                                        ${btnText}
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    userCoursesList.innerHTML = html;
+                }
+
+                // Action Handler: Handle Course Enrollment/Unenrollment (AJAX Post)
+                async function handleEnrollAction(e) {
+                    const btn = e.currentTarget;
+                    const courseId = btn.getAttribute('data-course-id');
+                    const action = btn.getAttribute('data-action');
+                    const fee = parseInt(btn.getAttribute('data-enrollment-fee') || '0');
+                    
+                    if (action === 'enroll' && fee > 0) {
+                        window.location.href = `/course/${courseId}/payment`;
+                        return;
+                    }
+                    
+                    btn.disabled = true;
+                    btn.textContent = action === 'enroll' ? 'Enrolling...' : 'Unenrolling...';
+
+                    try {
+                        const response = await fetch(`/api/courses/${courseId}/${action}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            }
+                        });
+
+                        const data = await response.json();
+                        
+                        const msg = data.message || 'Course updated successfully.';
+                        showToast(msg, response.ok && data.success ? 'success' : 'error');
+                    } catch (error) {
+                        console.error('Enroll/Unenroll request failed:', error);
+                    } finally {
+                        await loadCoursesData();
+                    }
+                }
+
+                // Search Debounce implementation
+                let searchTimeout = null;
+                catalogSearchInput.addEventListener('input', () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        loadCoursesData();
+                    }, 300);
+                });
+
+                // Class Select Change Event
+                catalogClassSelect.addEventListener('change', loadCoursesData);
+
+                // Initial fetch
+                loadCoursesData();
             });
 
             // Modal Toggling Functions
@@ -1241,7 +1590,7 @@
         </script>
 
         <!-- Notifications Modal (Glassmorphic) -->
-        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[85vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
@@ -1278,7 +1627,7 @@
         </div>
 
         <!-- Profile Modal (Glassmorphic) -->
-        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[90vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
