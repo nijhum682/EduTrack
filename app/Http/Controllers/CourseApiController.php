@@ -307,7 +307,9 @@ class CourseApiController extends Controller
             },
             'notes.user',
             'questions.user',
-            'questions.answers.user'
+            'questions.answers.user',
+            'lectures.rootComments.user',
+            'lectures.rootComments.replies.user'
         ]);
 
         return view('course.show', compact('course'));
@@ -430,5 +432,76 @@ class CourseApiController extends Controller
         }
 
         return redirect()->back()->with('success', 'Reply posted successfully!');
+    }
+
+    /**
+     * Post a comment or reply under a lecture.
+     */
+    public function commentLecture(Request $request, Course $course, Lecture $lecture)
+    {
+        $request->validate([
+            'comment_text' => 'required|string|max:1000',
+            'parent_id' => 'nullable|exists:lecture_comments,id',
+        ]);
+
+        LectureComment::create([
+            'lecture_id' => $lecture->id,
+            'user_id' => Auth::id(),
+            'comment_text' => $request->comment_text,
+            'parent_id' => $request->parent_id,
+        ]);
+
+        Activity::log('lecture_comment', "Commented on lecture '{$lecture->name}' in {$course->title}");
+
+        return redirect()->back()->with('success', 'Comment posted on lecture!');
+    }
+
+    /**
+     * Like/Unlike a lecture.
+     */
+    public function likeLecture(Course $course, Lecture $lecture)
+    {
+        $userId = Auth::id();
+        $like = \App\Models\LectureLike::where('lecture_id', $lecture->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($like) {
+            $like->delete();
+            Activity::log('lecture_unlike', "Unliked lecture '{$lecture->name}' in {$course->title}");
+            $liked = false;
+        } else {
+            \App\Models\LectureLike::create([
+                'lecture_id' => $lecture->id,
+                'user_id' => $userId,
+            ]);
+            Activity::log('lecture_like', "Liked lecture '{$lecture->name}' in {$course->title}");
+            $liked = true;
+        }
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'liked' => $liked,
+                'count' => $lecture->likes()->count(),
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Delete a lecture comment or reply.
+     */
+    public function deleteLectureComment(Course $course, Lecture $lecture, \App\Models\LectureComment $comment)
+    {
+        if (Auth::id() !== $comment->user_id && !Auth::user()->isTeacher()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $comment->delete();
+        Activity::log('lecture_comment_delete', "Deleted comment/reply on lecture '{$lecture->name}' in {$course->title}");
+
+        return redirect()->back()->with('success', 'Comment deleted successfully.');
     }
 }

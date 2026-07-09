@@ -238,6 +238,121 @@
                 color: #8b5cf6 !important;
                 background-color: rgba(139, 92, 246, 0.1) !important;
             }
+
+            /* Light theme comment overrides */
+            body.theme-space-light .lecture-comment-card {
+                background-color: #ffffff !important;
+                border-color: #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            body.theme-space-light .lecture-comment-card strong {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .lecture-comment-card p {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .lecture-reply-card {
+                background-color: #f8fafc !important;
+                border-color: #cbd5e1 !important;
+                color: #334155 !important;
+            }
+            body.theme-space-light .lecture-reply-card strong {
+                color: #1e293b !important;
+            }
+            body.theme-space-light .lecture-reply-card p {
+                color: #334155 !important;
+            }
+            body.theme-space-light .lecture-comment-btn {
+                color: #475569 !important;
+            }
+            body.theme-space-light .lecture-comment-btn:hover {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .lecture-comment-meta {
+                color: #475569 !important;
+            }
+
+            /* Dark theme comment overrides */
+            body.theme-space-dark .lecture-comment-card {
+                background-color: #0f172a !important;
+                border-color: #1e293b !important;
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .lecture-comment-card strong {
+                color: #f1f5f9 !important;
+            }
+            body.theme-space-dark .lecture-comment-card p {
+                color: #f8fafc !important;
+            }
+            body.theme-space-dark .lecture-reply-card {
+                background-color: rgba(15, 23, 42, 0.4) !important;
+                border-color: #1e293b !important;
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .lecture-reply-card strong {
+                color: #f1f5f9 !important;
+            }
+            body.theme-space-dark .lecture-reply-card p {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .lecture-comment-btn {
+                color: #94a3b8 !important;
+            }
+            body.theme-space-dark .lecture-comment-btn:hover {
+                color: #f1f5f9 !important;
+            }
+            body.theme-space-dark .lecture-comment-meta {
+                color: #94a3b8 !important;
+            }
+
+            /* Light theme action buttons */
+            body.theme-space-light .lecture-action-btn {
+                color: #475569 !important;
+            }
+            body.theme-space-light .lecture-action-btn:hover {
+                color: #4f46e5 !important;
+            }
+            body.theme-space-light .lecture-action-btn.liked-active {
+                color: #4f46e5 !important;
+            }
+            body.theme-space-light .lecture-action-btn .action-count {
+                background-color: #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            
+            /* Dark theme action buttons */
+            body.theme-space-dark .lecture-action-btn {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .lecture-action-btn:hover {
+                color: #818cf8 !important;
+            }
+            body.theme-space-dark .lecture-action-btn.liked-active {
+                color: #818cf8 !important;
+            }
+            body.theme-space-dark .lecture-action-btn .action-count {
+                background-color: #1e293b !important;
+                color: #f1f5f9 !important;
+            }
+
+            /* Force white text on status badges regardless of theme overrides */
+            body.theme-space-light span.status-badge,
+            body.theme-space-dark span.status-badge,
+            body.theme-space-light .completed-live-class-card span.status-badge,
+            body.theme-space-light .lecture-card span.status-badge,
+            span.status-badge {
+                color: #ffffff !important;
+            }
+            
+            /* Keep white text visible on premium buttons in light theme */
+            body.theme-space-light button,
+            body.theme-space-light input[type="submit"],
+            body.theme-space-light .btn-text-white,
+            body.theme-space-light .status-badge,
+            body.theme-space-light a.bg-indigo-600,
+            body.theme-space-light a.bg-indigo-650 {
+                color: #ffffff !important;
+            }
         </style>
     </head>
     <body class="theme-space-dark min-h-screen text-slate-100 flex flex-col transition-colors duration-500">

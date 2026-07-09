@@ -53,6 +53,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/course/{course}/notes', [App\Http\Controllers\CourseApiController::class, 'uploadNote'])->name('course.notes.upload');
         Route::post('/course/{course}/questions', [App\Http\Controllers\CourseApiController::class, 'askQuestion'])->name('course.questions.ask');
         Route::post('/course/{course}/questions/{question}/answers', [App\Http\Controllers\CourseApiController::class, 'replyQuestion'])->name('course.questions.reply');
+        Route::post('/course/{course}/lectures/{lecture}/comment', [App\Http\Controllers\CourseApiController::class, 'commentLecture'])->name('course.lectures.comment');
+        Route::post('/course/{course}/lectures/{lecture}/comments/{comment}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteLectureComment'])->name('course.lectures.comment.delete');
+        Route::post('/course/{course}/lectures/{lecture}/like', [App\Http\Controllers\CourseApiController::class, 'likeLecture'])->name('course.lectures.like');
         Route::post('/course/{course}/lectures', [App\Http\Controllers\TeacherDashboardController::class, 'createLecture'])->name('teacher.lectures.create');
     });
 
