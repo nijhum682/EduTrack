@@ -324,7 +324,7 @@
             .feature-card:nth-child(6) { animation: fadeInUp 0.5s ease-out 0.6s both; }
         </style>
     </head>
-    <body class="theme-space-dark">
+    <body class="theme-space-light">
         <!-- Core App Content Wrapper -->
         <div class="app-wrapper">
             
@@ -362,13 +362,12 @@
                     <!-- Navigation Links -->
                     <nav class="nav-links">
                         <a href="{{ route('features') }}" class="nav-link" style="color: var(--primary); font-weight: 700;">Features</a>
-                        <a href="/#about" class="nav-link">About</a>
-                        <a href="/#pricing" class="nav-link">Pricing</a>
+                        <a href="{{ route('about') }}" class="nav-link">About</a>
+                        <a href="{{ route('courses') }}" class="nav-link">Courses</a>
                     </nav>
 
                     <!-- Authentication Routes -->
                     <div class="nav-auth">
-                        <button id="theme-toggle" title="Toggle Theme"></button>
                         @if (Route::has('login'))
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="btn btn-primary">Dashboard</a>
@@ -493,55 +492,5 @@
             </div>
 
         </div>
-
-        <script>
-            // Theme toggling logic
-            const themeToggle = document.getElementById('theme-toggle');
-            
-            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.978 4.978l1.591 1.591m10.862 10.862l1.591 1.591M21 12h-2.25m-13.5 0H3m14.022-7.022l-1.591 1.591M6.569 17.43l-1.591 1.591M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z" /></svg>`;
-            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 1.25rem; height: 1.25rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>`;
-
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-                return null;
-            }
-
-            function setCookie(name, value, days) {
-                let expires = "";
-                if (days) {
-                    const date = new Date();
-                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                    expires = "; expires=" + date.toUTCString();
-                }
-                document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`;
-            }
-
-            function updateThemeToggleIcon(theme) {
-                if (theme === 'theme-space-dark') {
-                    themeToggle.innerHTML = sunIcon;
-                } else {
-                    themeToggle.innerHTML = moonIcon;
-                }
-            }
-
-            // Apply theme on page load
-            const currentTheme = getCookie('dashboard_theme') || 'theme-space-dark';
-            document.body.classList.remove('theme-space-dark', 'theme-space-light');
-            document.body.classList.add(currentTheme);
-            updateThemeToggleIcon(currentTheme);
-
-            themeToggle.addEventListener('click', function () {
-                const newTheme = document.body.classList.contains('theme-space-dark') 
-                    ? 'theme-space-light' 
-                    : 'theme-space-dark';
-                
-                document.body.classList.remove('theme-space-dark', 'theme-space-light');
-                document.body.classList.add(newTheme);
-                setCookie('dashboard_theme', newTheme, 30);
-                updateThemeToggleIcon(newTheme);
-            });
-        </script>
     </body>
 </html>

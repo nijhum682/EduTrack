@@ -7,8 +7,63 @@
 
         <!-- Stylesheets -->
         <link rel="stylesheet" href="{{ asset('css/homepage.css') }}">
+        
+        <style>
+            /* Theme Configuration overrides for welcome page */
+            body.theme-space-dark {
+                --text-main: #f8fafc;
+                --text-muted: #cbd5e1;
+                --text-light: #94a3b8;
+                --bg-white: #0f172a;
+                --bg-glass: rgba(8, 12, 20, 0.75);
+                --border-glass: rgba(255, 255, 255, 0.08);
+                
+                background-color: #080c14 !important;
+                background-image: 
+                    linear-gradient(rgba(8, 12, 20, 0.82), rgba(8, 12, 20, 0.82)),
+                    url('/images/header-image.png') !important;
+            }
+            body.theme-space-dark .logo-link {
+                color: #ffffff !important;
+            }
+            body.theme-space-dark .nav-link {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .nav-link:hover {
+                color: #ffffff !important;
+            }
+            body.theme-space-dark .hero-title {
+                color: #ffffff !important;
+            }
+            body.theme-space-dark .hero-description {
+                color: #cbd5e1 !important;
+            }
+            
+            /* Theme Toggle Button custom styles */
+            #theme-toggle {
+                background: rgba(15, 23, 42, 0.05);
+                color: #0f172a;
+                border: 1px solid rgba(15, 23, 42, 0.1);
+                border-radius: 0.75rem;
+                padding: 0.6rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 0.75rem;
+            }
+            body.theme-space-dark #theme-toggle {
+                background: rgba(255, 255, 255, 0.05) !important;
+                color: #f8fafc !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            #theme-toggle:hover {
+                transform: scale(1.05);
+            }
+        </style>
     </head>
-    <body>
+    <body class="theme-space-light">
         <!-- Core App Content Wrapper -->
         <div class="app-wrapper">
             
@@ -55,8 +110,8 @@
                     <!-- Navigation Links -->
                     <nav class="nav-links">
                         <a href="{{ route('features') }}" class="nav-link">Features</a>
-                        <a href="#about" class="nav-link">About</a>
-                        <a href="#pricing" class="nav-link">Pricing</a>
+                        <a href="{{ route('about') }}" class="nav-link">About</a>
+                        <a href="{{ route('courses') }}" class="nav-link">Courses</a>
                     </nav>
 
                     <!-- Authentication Routes -->
@@ -110,6 +165,5 @@
             </main>
 
         </div>
-
     </body>
 </html>
