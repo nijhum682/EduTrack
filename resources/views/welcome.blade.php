@@ -54,7 +54,7 @@
 
                     <!-- Navigation Links -->
                     <nav class="nav-links">
-                        <a href="#features" class="nav-link">Features</a>
+                        <a href="{{ route('features') }}" class="nav-link">Features</a>
                         <a href="#about" class="nav-link">About</a>
                         <a href="#pricing" class="nav-link">Pricing</a>
                     </nav>
