@@ -12,6 +12,8 @@ class CourseNote extends Model
         'user_id',
         'title',
         'file_path',
+        'rating',
+        'comment',
     ];
 
     /**
@@ -28,5 +30,13 @@ class CourseNote extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Relationship: A note has many comments.
+     */
+    public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CourseNoteComment::class, 'course_note_id');
     }
 }

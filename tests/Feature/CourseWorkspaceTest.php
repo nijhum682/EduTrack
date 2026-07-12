@@ -150,6 +150,23 @@ class CourseWorkspaceTest extends TestCase
     }
 
     /**
+     * Test teacher cannot ask question.
+     */
+    public function test_teacher_cannot_ask_question()
+    {
+        $response = $this->actingAs($this->teacher)
+            ->post(route('course.questions.ask', $this->course->id), [
+                'question_text' => 'Should I ask a question as a teacher?',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'Instructors cannot post questions.');
+        $this->assertDatabaseMissing('course_questions', [
+            'question_text' => 'Should I ask a question as a teacher?',
+        ]);
+    }
+
+    /**
      * Test teacher can reply to question.
      */
     public function test_teacher_can_reply_to_question()
@@ -172,6 +189,277 @@ class CourseWorkspaceTest extends TestCase
             'course_question_id' => $question->id,
             'user_id' => $this->teacher->id,
             'answer_text' => 'PCB stores state information for a process.',
+        ]);
+    }
+
+    /**
+     * Test teacher can create a course with enrollment fee and class.
+     */
+    public function test_teacher_can_create_course_with_fee_and_class()
+    {
+        $response = $this->actingAs($this->teacher)
+            ->post(route('teacher.courses.create'), [
+                'title' => 'Discrete Mathematics',
+                'code' => 'MATH101',
+                'enrollment_fee' => 1500,
+                'class' => 'Class 9',
+                'description' => 'Intro to discrete structures.',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('courses', [
+            'title' => 'Discrete Mathematics',
+            'code' => 'MATH101',
+            'enrollment_fee' => 1500,
+            'class' => 'Class 9',
+            'instructor_id' => $this->teacher->id,
+        ]);
+    }
+
+    /**
+     * Test teacher can update course details.
+     */
+    public function test_teacher_can_update_course_details()
+    {
+        $response = $this->actingAs($this->teacher)
+            ->post(route('teacher.courses.update', $this->course->id), [
+                'title' => 'Advanced Operating Systems',
+                'code' => 'CSE3101-ADV',
+                'enrollment_fee' => 2000,
+                'class' => 'Class 10',
+                'description' => 'Advanced OS concepts.',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('courses', [
+            'id' => $this->course->id,
+            'title' => 'Advanced Operating Systems',
+            'code' => 'CSE3101-ADV',
+            'enrollment_fee' => 2000,
+            'class' => 'Class 10',
+        ]);
+    }
+
+    /**
+     * Test teacher can upload lecture with video.
+     */
+    public function test_teacher_can_upload_lecture_with_video()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $video = \Illuminate\Http\UploadedFile::fake()->create('lecture.mp4', 5000, 'video/mp4');
+
+        $response = $this->actingAs($this->teacher)
+            ->post(route('teacher.lectures.create', $this->course->id), [
+                'lecture_number' => 'Lecture 05',
+                'name' => 'CPU Scheduling Algorithms',
+                'details' => 'FCFS, SJF, and Round Robin.',
+                'lecture_video' => $video,
+            ]);
+
+        $response->assertRedirect();
+        
+        $lecture = \App\Models\Lecture::where('name', 'CPU Scheduling Algorithms')->first();
+        $this->assertNotNull($lecture);
+        $this->assertNotNull($lecture->video_path);
+        $this->assertNotNull($lecture->runtime);
+        
+        $this->assertTrue(file_exists(public_path($lecture->video_path)));
+        @unlink(public_path($lecture->video_path));
+    }
+
+    /**
+     * Test teacher can rate and comment on student shared note.
+     */
+    public function test_teacher_can_rate_and_comment_on_shared_note()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $note = \App\Models\CourseNote::create([
+            'course_id' => $this->course->id,
+            'user_id' => $student->id,
+            'title' => 'Process Synchronization Cheat Sheet',
+            'file_path' => 'uploads/notes/test_note.pdf',
+        ]);
+
+        $response = $this->actingAs($this->teacher)
+            ->post(route('teacher.notes.evaluate', [$this->course->id, $note->id]), [
+                'rating' => 5,
+                'comment' => 'Excellent summary of semaphores!',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('course_notes', [
+            'id' => $note->id,
+            'rating' => 5,
+            'comment' => 'Excellent summary of semaphores!',
+        ]);
+    }
+
+    /**
+     * Test student can submit assignment and teacher can grade it.
+     */
+    public function test_student_can_submit_assignment_and_teacher_can_grade_it()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $task = \App\Models\Task::create([
+            'course_id' => $this->course->id,
+            'title' => 'Lab 3: Processes',
+            'description' => 'Write a C program to fork processes.',
+            'points' => 20,
+            'due_date' => now()->addDays(7),
+        ]);
+
+        $response = $this->actingAs($student)
+            ->post(route('course.tasks.submit', [$this->course->id, $task->id]), [
+                'response_text' => 'Here is my process fork code.',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('task_submissions', [
+            'task_id' => $task->id,
+            'user_id' => $student->id,
+            'is_completed' => true,
+        ]);
+
+        $submission = \App\Models\TaskSubmission::where('task_id', $task->id)->where('user_id', $student->id)->first();
+        
+        $gradeResponse = $this->actingAs($this->teacher)
+            ->post(route('teacher.submissions.evaluate', $submission->id), [
+                'score' => 18,
+                'feedback' => 'Good implementation, clean output.',
+            ]);
+
+        $gradeResponse->assertRedirect();
+        $this->assertDatabaseHas('task_submissions', [
+            'id' => $submission->id,
+            'score' => 18,
+            'feedback' => 'Good implementation, clean output.',
+        ]);
+    }
+
+    /**
+     * Test student can comment on shared notes.
+     */
+    public function test_student_can_comment_on_shared_note()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $note = \App\Models\CourseNote::create([
+            'course_id' => $this->course->id,
+            'user_id' => $student->id,
+            'title' => 'PCB Cheat Sheet',
+            'file_path' => 'uploads/notes/test_note.pdf',
+        ]);
+
+        $response = $this->actingAs($student)
+            ->post(route('course.notes.comment', [$this->course->id, $note->id]), [
+                'comment_text' => 'Thanks for sharing this note! Very useful.',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('course_note_comments', [
+            'course_note_id' => $note->id,
+            'user_id' => $student->id,
+            'comment_text' => 'Thanks for sharing this note! Very useful.',
+        ]);
+    }
+
+    /**
+     * Test student and teacher can comment and reply in virtual classroom.
+     */
+    public function test_classroom_comments_and_replies()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $class = \App\Models\ScheduledClass::create([
+            'course_id' => $this->course->id,
+            'title' => 'Process Management Live',
+            'scheduled_at' => now(),
+            'duration_minutes' => 60,
+            'platform' => 'Zoom',
+            'meeting_link' => 'https://zoom.us/test',
+            'is_active' => true,
+        ]);
+
+        // Student posts a comment
+        $response = $this->actingAs($student)
+            ->post(route('classroom.comment', $class->id), [
+                'comment_text' => 'Hello teacher, I have a question about slide 2.',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('scheduled_class_comments', [
+            'scheduled_class_id' => $class->id,
+            'user_id' => $student->id,
+            'comment_text' => 'Hello teacher, I have a question about slide 2.',
+            'parent_id' => null,
+        ]);
+
+        $comment = \App\Models\ScheduledClassComment::first();
+
+        // Teacher replies to student comment
+        $replyResponse = $this->actingAs($this->teacher)
+            ->post(route('classroom.comment', $class->id), [
+                'comment_text' => 'Sure, ask ahead!',
+                'parent_id' => $comment->id,
+            ]);
+
+        $replyResponse->assertRedirect();
+        $this->assertDatabaseHas('scheduled_class_comments', [
+            'scheduled_class_id' => $class->id,
+            'user_id' => $this->teacher->id,
+            'comment_text' => 'Sure, ask ahead!',
+            'parent_id' => $comment->id,
+        ]);
+    }
+
+    /**
+     * Test student and teacher can comment and reply under a lecture.
+     */
+    public function test_lecture_comments_and_replies()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $lecture = \App\Models\Lecture::create([
+            'course_id' => $this->course->id,
+            'lecture_number' => 'LECTURE 02',
+            'name' => 'Advanced Database Normalization',
+            'details' => 'Deep dive into 3NF and BCNF concepts.',
+        ]);
+
+        // Student comments on the lecture
+        $response = $this->actingAs($student)
+            ->post(route('course.lectures.comment', [$this->course->id, $lecture->id]), [
+                'comment_text' => 'This is a very clear explanation of BCNF. Thank you!',
+            ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('lecture_comments', [
+            'lecture_id' => $lecture->id,
+            'user_id' => $student->id,
+            'comment_text' => 'This is a very clear explanation of BCNF. Thank you!',
+            'parent_id' => null,
+        ]);
+
+        $comment = \App\Models\LectureComment::first();
+
+        // Teacher replies to student comment
+        $replyResponse = $this->actingAs($this->teacher)
+            ->post(route('course.lectures.comment', [$this->course->id, $lecture->id]), [
+                'comment_text' => 'Glad it helped! Let me know if you need any extra exercises.',
+                'parent_id' => $comment->id,
+            ]);
+
+        $replyResponse->assertRedirect();
+        $this->assertDatabaseHas('lecture_comments', [
+            'lecture_id' => $lecture->id,
+            'user_id' => $this->teacher->id,
+            'comment_text' => 'Glad it helped! Let me know if you need any extra exercises.',
+            'parent_id' => $comment->id,
         ]);
     }
 }

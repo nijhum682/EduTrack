@@ -25,19 +25,127 @@
         </script>
 
         <style>
-            .custom-bg {
+            body.theme-space-dark {
                 background-color: #080c14;
                 background-image: 
-                    linear-gradient(rgba(8, 12, 20, 0.8), rgba(8, 12, 20, 0.8)),
-                    url('{{ asset('images/header-image.png') }}');
+                    linear-gradient(rgba(8, 12, 20, 0.82), rgba(8, 12, 20, 0.82)),
+                    url('{{ asset('images/header-image.png') }}') !important;
                 background-size: cover;
                 background-position: center;
                 background-attachment: fixed;
                 background-repeat: no-repeat;
             }
+            
+            body.theme-space-light {
+                background-color: #f8fafc;
+                background-image: 
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.84) 0%, rgba(237, 244, 254, 0.84) 65%, rgba(218, 231, 252, 0.84) 100%),
+                    url('{{ asset('images/header-image.png') }}') !important;
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
+            }
+
+            /* Light mode overrides for auth page */
+            body.theme-space-light {
+                color: #0f172a !important;
+            }
+            body.theme-space-light h2,
+            body.theme-space-light label {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .text-slate-400 {
+                color: #475569 !important;
+            }
+            body.theme-space-light .bg-slate-900\/60 {
+                background: rgba(255, 255, 255, 0.6) !important;
+                backdrop-filter: blur(16px) !important;
+                border-color: rgba(15, 23, 42, 0.08) !important;
+                box-shadow: 0 10px 35px rgba(15, 23, 42, 0.05) !important;
+            }
+            body.theme-space-light input,
+            body.theme-space-light select {
+                background: rgba(255, 255, 255, 0.8) !important;
+                border-color: rgba(15, 23, 42, 0.12) !important;
+                color: #0f172a !important;
+            }
+            body.theme-space-light input::placeholder {
+                color: #94a3b8 !important;
+            }
+            body.theme-space-light .text-indigo-400 {
+                color: #4f46e5 !important;
+            }
+            body.theme-space-light .text-indigo-400:hover {
+                color: #4338ca !important;
+            }
+            body.theme-space-light button[type="submit"] {
+                color: #ffffff !important;
+            }
+
+            /* Dark mode readability & opacity improvements */
+            body.theme-space-dark .bg-slate-900\/60 {
+                background: rgba(23, 31, 52, 0.75) !important;
+                border-color: rgba(255, 255, 255, 0.12) !important;
+            }
+            body.theme-space-dark input,
+            body.theme-space-dark select {
+                background-color: rgba(15, 23, 42, 0.7) !important;
+                border-color: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+            }
+            body.theme-space-dark input::placeholder {
+                color: #94a3b8 !important;
+            }
+            body.theme-space-dark label {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .text-slate-400 {
+                color: #cbd5e1 !important;
+            }
+
+            /* Autocomplete / Autofill custom overrides */
+            input:-webkit-autofill,
+            input:-webkit-autofill:hover, 
+            input:-webkit-autofill:focus, 
+            input:-webkit-autofill:active {
+                -webkit-box-shadow: 0 0 0 30px #090e18 inset !important;
+                -webkit-text-fill-color: #ffffff !important;
+                transition: background-color 5000s ease-in-out 0s;
+            }
+            body.theme-space-light input:-webkit-autofill,
+            body.theme-space-light input:-webkit-autofill:hover, 
+            body.theme-space-light input:-webkit-autofill:focus, 
+            body.theme-space-light input:-webkit-autofill:active {
+                -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+                -webkit-text-fill-color: #0f172a !important;
+                transition: background-color 5000s ease-in-out 0s;
+            }
+
+            /* Theme Toggle Button custom styles */
+            #theme-toggle {
+                background: rgba(15, 23, 42, 0.05);
+                color: #0f172a;
+                border: 1px solid rgba(15, 23, 42, 0.1);
+                border-radius: 0.75rem;
+                padding: 0.6rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            body.theme-space-dark #theme-toggle {
+                background: rgba(255, 255, 255, 0.05) !important;
+                color: #f8fafc !important;
+                border-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            #theme-toggle:hover {
+                transform: scale(1.05);
+            }
         </style>
     </head>
-    <body class="custom-bg min-height-screen text-slate-100 flex items-center justify-center p-4 md:p-8 min-h-screen relative overflow-x-hidden">
+    <body class="theme-space-light min-h-screen text-slate-100 flex items-center justify-center p-4 md:p-8 relative overflow-x-hidden">
         <!-- Floating Ambient Blobs -->
         <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
         <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl -z-10 animate-pulse" style="animation-delay: 2s;"></div>
@@ -89,7 +197,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </span>
-                            <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus
+                            <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus autocomplete="name"
                                 class="w-full bg-slate-950/50 border @error('name') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="John Doe">
                         </div>
@@ -110,7 +218,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206" />
                                 </svg>
                             </span>
-                            <input type="text" name="username" id="username" value="{{ old('username') }}" required
+                            <input type="text" name="username" id="username" value="{{ old('username') }}" required autocomplete="username"
                                 class="w-full bg-slate-950/50 border @error('username') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="johndoe">
                         </div>
@@ -131,7 +239,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </span>
-                            <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                            <input type="email" name="email" id="email" value="{{ old('email') }}" required autocomplete="email"
                                 class="w-full bg-slate-950/50 border @error('email') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="you@example.com">
                         </div>
@@ -152,7 +260,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h2.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.252.834l-1.26 1.26a11.085 11.085 0 005.28 5.28l1.26-1.26a1 1 0 01.834-.252l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
                             </span>
-                            <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number') }}"
+                            <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number') }}" autocomplete="tel"
                                 class="w-full bg-slate-950/50 border @error('phone_number') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="+1 (555) 0199">
                         </div>
@@ -209,7 +317,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </span>
-                            <input type="password" name="password" id="password" required
+                            <input type="password" name="password" id="password" required autocomplete="new-password"
                                 class="w-full bg-slate-950/50 border @error('password') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-10 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="••••••••">
                             <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-300 focus:outline-none">
@@ -242,7 +350,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
                             </span>
-                            <input type="password" name="password_confirmation" id="password_confirmation" required
+                            <input type="password" name="password_confirmation" id="password_confirmation" required autocomplete="new-password"
                                 class="w-full bg-slate-950/50 border border-slate-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-10 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
                                 placeholder="••••••••">
                             <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-500 hover:text-slate-300 focus:outline-none">
@@ -389,6 +497,7 @@
                     event.preventDefault();
                 }
             });
+
         </script>
     </body>
 </html>

@@ -31,4 +31,20 @@ class ScheduledClass extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    /**
+     * Relationship: A class has many comments.
+     */
+    public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ScheduledClassComment::class, 'scheduled_class_id')->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Relationship: A class has many root comments (where parent_id is null).
+     */
+    public function rootComments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ScheduledClassComment::class, 'scheduled_class_id')->whereNull('parent_id')->orderBy('created_at', 'asc');
+    }
 }

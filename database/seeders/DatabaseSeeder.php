@@ -41,13 +41,24 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        // Create Nibir teacher if not exists
+        User::firstOrCreate(
+            ['email' => 'nibir@gmail.com'],
+            [
+                'name' => 'Nibir',
+                'username' => 'nibir',
+                'role' => 'teacher',
+                'password' => \Illuminate\Support\Facades\Hash::make('Nibir49#'),
+            ]
+        );
+
         // Course 1
-        $cs101 = Course::firstOrCreate(
+        $cs101 = Course::updateOrCreate(
             ['code' => 'CS101'],
             [
                 'title' => 'Introduction to Computer Science',
                 'description' => 'Fundamentals of computer science, programming logic, and computational thinking using Python.',
-                'instructor' => 'Dr. Alan Turing',
+                'instructor' => 'Rafsan Riasat',
                 'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]
@@ -81,12 +92,12 @@ class DatabaseSeeder extends Seeder
         );
 
         // Course 2
-        $swe302 = Course::firstOrCreate(
+        $swe302 = Course::updateOrCreate(
             ['code' => 'SWE302'],
             [
                 'title' => 'Advanced Web Development',
                 'description' => 'Building modern scalable web systems, focusing on MVC architectures, REST APIs, and AJAX.',
-                'instructor' => 'Prof. Tim Berners-Lee',
+                'instructor' => 'Mehedi Hasan',
                 'instructor_id' => $teacher->id,
                 'credits' => 4,
             ]
@@ -111,12 +122,12 @@ class DatabaseSeeder extends Seeder
         );
 
         // Course 3
-        $db201 = Course::firstOrCreate(
+        $db201 = Course::updateOrCreate(
             ['code' => 'DB201'],
             [
                 'title' => 'Database Management Systems',
                 'description' => 'Concepts of relational database models, SQL language, schema design, and normalization (1NF to BCNF).',
-                'instructor' => 'Dr. Edgar F. Codd',
+                'instructor' => 'Tahmid Chowdhury',
                 'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]
@@ -141,12 +152,12 @@ class DatabaseSeeder extends Seeder
         );
 
         // Course 4
-        $ai401 = Course::firstOrCreate(
+        $ai401 = Course::updateOrCreate(
             ['code' => 'AI401'],
             [
                 'title' => 'Artificial Intelligence & Ethics',
                 'description' => 'Overview of search algorithms, model weights, and ethical concerns of algorithmic bias.',
-                'instructor' => 'Prof. Ada Lovelace',
+                'instructor' => 'Mynul Hasan',
                 'instructor_id' => $teacher->id,
                 'credits' => 3,
             ]

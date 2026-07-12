@@ -43,6 +43,7 @@ Route::post('/login', [LoginController::class, 'login']);
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/api/activities/read', [App\Http\Controllers\ProfileController::class, 'markActivitiesAsRead'])->name('activities.read');
 
     // Shared API endpoints for courses catalog
     Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);

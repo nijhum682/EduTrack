@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
@@ -109,7 +109,7 @@
                         <!-- Slide 1 -->
                         <div id="slide-1" class="slide-item space-y-4 max-w-lg">
                             <div class="w-16 h-16 bg-pink-500/10 text-pink-400 rounded-2xl flex items-center justify-center mx-auto text-3xl font-extrabold animate-pulse">
-                                ðŸŽ“
+                                🎓
                             </div>
                             <h2 class="text-2xl font-extrabold text-white tracking-tight">Welcome to Today's Interactive Lecture</h2>
                             <p class="text-sm text-slate-400 leading-relaxed">
@@ -150,7 +150,7 @@
 
                         <!-- Slide 4 -->
                         <div id="slide-4" class="slide-item hidden space-y-4 max-w-lg">
-                            <div class="text-4xl">ðŸ’¬</div>
+                            <div class="text-4xl">💬</div>
                             <h2 class="text-2xl font-extrabold text-white tracking-tight">Question & Answer Session</h2>
                             <p class="text-sm text-slate-400">
                                 Send your queries directly in the virtual chat lobby. The instructor will answer in real-time.
@@ -160,7 +160,7 @@
 
                     <!-- Blackboard Footer toolbar -->
                     <div class="flex items-center justify-between border-t border-slate-900 pt-3 relative z-10">
-                        <span class="text-[10px] text-slate-500">Status: <strong class="text-emerald-400">â— Streaming Connection Stable</strong></span>
+                        <span class="text-[10px] text-slate-500">Status: <strong class="text-emerald-400">● Streaming Connection Stable</strong></span>
                         <div class="flex gap-2">
                             <span class="w-3 h-3 bg-purple-500 rounded-full inline-block cursor-pointer" onclick="setBoardColor('bg-purple-950/10')"></span>
                             <span class="w-3 h-3 bg-blue-500 rounded-full inline-block cursor-pointer" onclick="setBoardColor('bg-blue-950/10')"></span>
@@ -185,8 +185,8 @@
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-bold text-white">{{ $class->course->instructor }}</span>
                                 <div class="flex gap-1">
-                                    <button onclick="toggleAudio()" id="audio-btn" class="w-6 h-6 rounded bg-slate-900/80 border border-slate-700/60 flex items-center justify-center text-xs hover:bg-slate-800 cursor-pointer">ðŸŽ¤</button>
-                                    <button onclick="toggleVideo()" id="video-btn" class="w-6 h-6 rounded bg-slate-900/80 border border-slate-700/60 flex items-center justify-center text-xs hover:bg-slate-800 cursor-pointer">ðŸ“¹</button>
+                                    <button onclick="toggleAudio()" id="audio-btn" class="w-6 h-6 rounded bg-slate-900/80 border border-slate-700/60 flex items-center justify-center text-xs hover:bg-slate-800 cursor-pointer">🎙️</button>
+                                    <button onclick="toggleVideo()" id="video-btn" class="w-6 h-6 rounded bg-slate-900/80 border border-slate-700/60 flex items-center justify-center text-xs hover:bg-slate-800 cursor-pointer">📹</button>
                                 </div>
                             </div>
                         </div>
@@ -195,7 +195,7 @@
                     <!-- Participant webcam simulator (Students) -->
                     <div class="flex-grow glass-container rounded-2xl border border-slate-800/80 flex items-center justify-center relative overflow-hidden text-center p-4">
                         <div class="space-y-1 relative z-10">
-                            <div class="text-2xl animate-bounce">ðŸŽ’</div>
+                            <div class="text-2xl animate-bounce">🎲</div>
                             <h4 class="text-xs font-bold text-white">Student Study Lobby</h4>
                             <p class="text-[10px] text-slate-400">Classmates are viewing presentation slides</p>
                         </div>
@@ -233,20 +233,65 @@
                         <div class="text-center text-[10px] text-slate-500 italic py-2 border-b border-slate-900/30">
                             Joined virtual classroom chat lobby.
                         </div>
-                        <!-- Mock Messages -->
-                        <div class="space-y-1 bg-slate-900/30 border border-slate-900/50 p-2.5 rounded-xl">
-                            <div class="flex justify-between items-center text-[10px]">
-                                <strong class="text-slate-400">Alice Smith</strong>
-                                <span class="text-slate-600">Just now</span>
+
+                        @if($class->rootComments->count() === 0)
+                            <div class="text-center text-[10px] text-slate-600 italic py-4">
+                                No messages in this class session yet.
                             </div>
-                            <p class="text-slate-300">Good morning everyone!</p>
-                        </div>
+                        @endif
+
+                        @foreach($class->rootComments as $comment)
+                            <div class="space-y-2 bg-slate-900/30 border border-slate-900/50 p-2.5 rounded-xl">
+                                <div class="flex justify-between items-start text-[10px]">
+                                    <span class="flex items-center gap-1.5">
+                                        <strong class="{{ $comment->user->isTeacher() ? 'text-purple-300' : 'text-slate-300' }}">{{ $comment->user->name }}</strong>
+                                        @if($comment->user->isTeacher())
+                                            <span class="text-[8px] font-extrabold uppercase border px-1 rounded bg-purple-500/20 text-purple-300 border-purple-500/40">Teacher</span>
+                                        @endif
+                                    </span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-600">{{ $comment->created_at->diffForHumans() }}</span>
+                                        <button onclick="setReplyParent({{ $comment->id }}, '{{ $comment->user->name }}')" class="text-pink-400 hover:text-pink-300 font-bold hover:underline cursor-pointer">Reply</button>
+                                    </div>
+                                </div>
+                                <p class="text-slate-200 font-medium leading-relaxed">{{ $comment->comment_text }}</p>
+
+                                <!-- Replies List -->
+                                @if($comment->replies->count() > 0)
+                                    <div class="pl-4 mt-2 border-l border-slate-800/80 space-y-2">
+                                        @foreach($comment->replies as $reply)
+                                            <div class="bg-slate-950/20 p-2 rounded-lg space-y-1">
+                                                <div class="flex justify-between items-start text-[9px]">
+                                                    <span class="flex items-center gap-1">
+                                                        <strong class="{{ $reply->user->isTeacher() ? 'text-purple-300' : 'text-slate-400' }}">{{ $reply->user->name }}</strong>
+                                                        @if($reply->user->isTeacher())
+                                                            <span class="text-[7px] font-extrabold uppercase border px-1 rounded bg-purple-500/10 text-purple-300 border-purple-500/30">Teacher</span>
+                                                        @endif
+                                                    </span>
+                                                    <span class="text-slate-600">{{ $reply->created_at->diffForHumans() }}</span>
+                                                </div>
+                                                <p class="text-slate-300 text-[10px] leading-relaxed">{{ $reply->comment_text }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
 
                     <!-- Chat Message Input -->
-                    <form id="classroom-chat-form" class="mt-auto flex-shrink-0">
+                    <form action="{{ route('classroom.comment', $class->id) }}" method="POST" id="classroom-chat-form" class="mt-auto flex-shrink-0">
+                        @csrf
+                        <input type="hidden" name="parent_id" id="parent-id-input" value="">
+                        
+                        <!-- Reply Indicator Badge -->
+                        <div id="reply-indicator" class="hidden flex justify-between items-center bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 mb-2 text-[10px]">
+                            <span class="text-slate-400">Replying to: <strong class="text-pink-400" id="reply-user-label"></strong></span>
+                            <button type="button" onclick="cancelReply()" class="text-red-400 hover:text-red-300 font-bold cursor-pointer">&times; Cancel</button>
+                        </div>
+
                         <div class="relative">
-                            <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off" class="w-full bg-slate-900/80 border border-slate-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/20 text-slate-200 placeholder-slate-500 rounded-xl py-2.5 pl-3 pr-10 text-xs outline-none transition">
+                            <input type="text" name="comment_text" required placeholder="Type a message or click Reply..." autocomplete="off" class="w-full bg-slate-900/80 border border-slate-800 focus:border-pink-500 focus:ring-1 focus:ring-pink-500/20 text-slate-200 placeholder-slate-500 rounded-xl py-2.5 pl-3 pr-10 text-xs outline-none transition">
                             <button type="submit" class="absolute inset-y-0 right-0 flex items-center pr-3 text-pink-400 hover:text-pink-300 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -296,12 +341,12 @@
             let videoActive = true;
             function toggleAudio() {
                 audioActive = !audioActive;
-                document.getElementById('audio-btn').textContent = audioActive ? 'ðŸŽ¤' : 'ðŸ”‡';
+                document.getElementById('audio-btn').textContent = audioActive ? '🎙️' : '🔇';
                 document.getElementById('audio-btn').style.borderColor = audioActive ? 'rgba(100, 116, 139, 0.6)' : '#ef4444';
             }
             function toggleVideo() {
                 videoActive = !videoActive;
-                document.getElementById('video-btn').textContent = videoActive ? 'ðŸ“¹' : 'ðŸš«';
+                document.getElementById('video-btn').textContent = videoActive ? '📹' : '🚫';
                 document.getElementById('video-btn').style.borderColor = videoActive ? 'rgba(100, 116, 139, 0.6)' : '#ef4444';
             }
 
@@ -456,59 +501,41 @@
             }
             startChatBot();
 
-            // Submit Teacher Message Form
-            chatForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const text = chatInput.value.trim();
-                if (!text) return;
+            // Reply helpers for classroom chat
+            function setReplyParent(parentId, userName) {
+                const parentIdInput = document.getElementById('parent-id-input');
+                const replyIndicator = document.getElementById('reply-indicator');
+                const replyUserLabel = document.getElementById('reply-user-label');
+                
+                if (parentIdInput) parentIdInput.value = parentId;
+                if (replyUserLabel) replyUserLabel.textContent = userName;
+                if (replyIndicator) replyIndicator.classList.remove('hidden');
+                
+                const textInput = document.querySelector('input[name="comment_text"]');
+                if (textInput) {
+                    textInput.focus();
+                    textInput.placeholder = `Reply to ${userName}...`;
+                }
+            }
 
-                const teacherName = "{{ Auth::user()->name }}";
-                const isTeacher = {{ $user->isTeacher() ? 'true' : 'false' }};
-                const tagLabel = isTeacher ? 'Teacher' : 'Student';
-                const tagColor = isTeacher ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+            function cancelReply() {
+                const parentIdInput = document.getElementById('parent-id-input');
+                const replyIndicator = document.getElementById('reply-indicator');
+                
+                if (parentIdInput) parentIdInput.value = '';
+                if (replyIndicator) replyIndicator.classList.add('hidden');
+                
+                const textInput = document.querySelector('input[name="comment_text"]');
+                if (textInput) {
+                    textInput.placeholder = "Type a message or click Reply...";
+                }
+            }
 
-                // Add message
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'space-y-1 bg-slate-900/60 border border-slate-800/80 p-2.5 rounded-xl shadow-md';
-                msgDiv.innerHTML = `
-                    <div class="flex justify-between items-center text-[10px]">
-                        <span class="flex items-center gap-1.5">
-                            <strong class="text-white">${teacherName}</strong>
-                            <span class="text-[8px] font-extrabold uppercase border px-1 rounded ${tagColor}">${tagLabel}</span>
-                        </span>
-                        <span class="text-slate-600">Just now</span>
-                    </div>
-                    <p class="text-slate-200 font-medium">${text}</p>
-                `;
-                chatContainer.appendChild(msgDiv);
-                chatInput.value = '';
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-
-                // Student automatically replies back to Teacher messages
-                setTimeout(() => {
-                    const studentReplies = [
-                        "Thank you for clarifying that!",
-                        "Makes total sense professor.",
-                        "Excellent answer.",
-                        "Understood!",
-                        "Perfect, thank you!"
-                    ];
-                    const randomStudent = students[Math.floor(Math.random() * students.length)];
-                    const randomReply = studentReplies[Math.floor(Math.random() * studentReplies.length)];
-
-                    const replyDiv = document.createElement('div');
-                    replyDiv.className = 'space-y-1 bg-slate-900/30 border border-slate-900/50 p-2.5 rounded-xl';
-                    replyDiv.innerHTML = `
-                        <div class="flex justify-between items-center text-[10px]">
-                            <strong class="text-slate-400">${randomStudent.name}</strong>
-                            <span class="text-slate-600">Just now</span>
-                        </div>
-                        <p class="text-slate-300">@${teacherName} ${randomReply}</p>
-                    `;
-                    chatContainer.appendChild(replyDiv);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }, 2000); // Reply after 2 seconds
-            });
+            // Auto-scroll chat to bottom
+            const chatMsgBox = document.getElementById('chat-messages-container');
+            if (chatMsgBox) {
+                chatMsgBox.scrollTop = chatMsgBox.scrollHeight;
+            }
         </script>
     </body>
 </html>

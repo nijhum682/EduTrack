@@ -63,4 +63,13 @@ class ProfileController extends Controller
 
         return redirect()->back()->with('success', 'Profile updated successfully!');
     }
+
+    /**
+     * Mark all activities for the user as read.
+     */
+    public function markActivitiesAsRead()
+    {
+        Auth::user()->activities()->where('is_read', false)->update(['is_read' => true]);
+        return response()->json(['success' => true]);
+    }
 }

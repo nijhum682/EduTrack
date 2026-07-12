@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Activity extends Model
 {
-    protected $fillable = ['user_id', 'type', 'description'];
+    protected $fillable = ['user_id', 'type', 'description', 'is_read'];
+
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
 
     public function user()
     {

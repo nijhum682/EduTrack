@@ -125,6 +125,9 @@
             body.theme-space-light .bg-slate-800\/50 {
                 background-color: rgba(255, 255, 255, 0.45) !important;
             }
+            body.theme-space-light .bg-slate-900\/40 {
+                background-color: rgba(241, 245, 249, 0.95) !important;
+            }
             body.theme-space-light .bg-slate-950 {
                 background-color: rgba(255, 255, 255, 0.7) !important;
             }
@@ -155,17 +158,36 @@
 
             /* Glassmorphism styling variables */
             .glass-panel {
-                background: rgba(15, 23, 42, 0.45);
+                background: rgba(23, 31, 52, 0.75);
                 backdrop-filter: blur(16px);
                 -webkit-backdrop-filter: blur(16px);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.12);
             }
             .glass-card {
-                background: rgba(30, 41, 59, 0.4);
+                background: rgba(30, 41, 59, 0.6);
                 backdrop-filter: blur(8px);
                 -webkit-backdrop-filter: blur(8px);
-                border: 1px solid rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.08);
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            /* Dark mode text and input readability improvements */
+            body.theme-space-dark input,
+            body.theme-space-dark textarea,
+            body.theme-space-dark select {
+                background-color: rgba(15, 23, 42, 0.7) !important;
+                border-color: rgba(255, 255, 255, 0.15) !important;
+                color: #ffffff !important;
+            }
+            body.theme-space-dark input::placeholder,
+            body.theme-space-dark textarea::placeholder {
+                color: #94a3b8 !important;
+            }
+            body.theme-space-dark label {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .text-slate-400 {
+                color: #cbd5e1 !important;
             }
             .glass-card:hover {
                 background: rgba(30, 41, 59, 0.55);
@@ -195,7 +217,7 @@
             }
         </style>
     </head>
-    <body class="theme-space-dark min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
+    <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
         
         <!-- Header Navigation Bar -->
         <header class="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
@@ -230,20 +252,14 @@
 
                 <!-- Theme Switcher & User Details -->
                 <div class="flex items-center gap-3">
-                    <!-- Theme Switcher Button (Stores cookie 'dashboard_theme') -->
-                    <button id="theme-toggle" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer" title="Toggle Dashboard Theme">
-                        🎨 Theme: <span id="theme-name">Space Dark</span>
-                    </button>
 
                     <!-- Notifications Button -->
                     <button onclick="toggleNotificationsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer flex items-center gap-1.5" title="View Activity Notifications">
                         🔔 Notifications
                         @php
-                            $notifCount = Auth::user()->activities()->count();
+                            $notifCount = Auth::user()->activities()->where('is_read', false)->count();
                         @endphp
-                        @if($notifCount > 0)
-                            <span class="bg-indigo-500 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold">{{ $notifCount }}</span>
-                        @endif
+                        <span id="notification-badge" class="bg-indigo-500 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold @if($notifCount === 0) hidden @endif">{{ $notifCount }}</span>
                     </button>
 
                     <!-- Profile Button -->
@@ -350,13 +366,13 @@
             <!-- Course Catalog & Workspace Layout Wrapper -->
             <div class="space-y-8">
                 
-                <!-- Full-Width Available Course Catalog -->
+                <!-- Full-Width Available Courses -->
                 <section>
                     <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
                         <!-- Heading & Search/Filter Controls -->
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
                             <div>
-                                <h2 class="text-xl font-extrabold text-white tracking-tight">Available Course Catalog</h2>
+                                <h2 class="text-xl font-extrabold text-white tracking-tight">Available Courses</h2>
                                 <p class="text-xs text-slate-400 mt-1">Search and filter courses in real-time (MySQL CRUD Read)</p>
                             </div>
                             
@@ -376,6 +392,8 @@
                                         <option value="Class 8">Class 8</option>
                                         <option value="Class 9">Class 9</option>
                                         <option value="Class 10">Class 10</option>
+                                        <option value="Class 11">Class 11</option>
+                                        <option value="Class 12">Class 12</option>
                                     </select>
                                 </div>
                             </div>
@@ -508,48 +526,6 @@
                 // Global role configuration
                 const isStudent = {{ Auth::user()->isStudent() ? 'true' : 'false' }};
                 const currentUserId = {{ Auth::id() }};
-
-                // 1. COOKIE THEME MANAGEMENT
-                const themeToggle = document.getElementById('theme-toggle');
-                const themeName = document.getElementById('theme-name');
-                
-                // Function to retrieve a cookie value by name
-                function getCookie(name) {
-                    const value = `; ${document.cookie}`;
-                    const parts = value.split(`; ${name}=`);
-                    if (parts.length === 2) return parts.pop().split(';').shift();
-                    return null;
-                }
-
-                // Function to set a cookie
-                function setCookie(name, value, days) {
-                    let expires = "";
-                    if (days) {
-                        const date = new Date();
-                        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                        expires = "; expires=" + date.toUTCString();
-                    }
-                    document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`;
-                }
-
-                // Initial load: Apply saved cookie theme preference
-                const currentTheme = getCookie('dashboard_theme') || 'theme-space-dark';
-                document.body.className = currentTheme;
-                themeName.textContent = currentTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
-
-                // Toggle Theme Handler
-                themeToggle.addEventListener('click', function () {
-                    const newTheme = document.body.classList.contains('theme-space-dark') 
-                        ? 'theme-space-light' 
-                        : 'theme-space-dark';
-                    
-                    document.body.classList.remove('theme-space-dark', 'theme-space-light');
-                    document.body.classList.add(newTheme);
-                    setCookie('dashboard_theme', newTheme, 30); // Save cookie for 30 days
-                    themeName.textContent = newTheme === 'theme-space-dark' ? 'Space Dark' : 'Space Light';
-                });
-
-
 
                 // 2. TOAST ALERTS SYSTEM
                 const toastContainer = document.getElementById('toast-container');
@@ -884,7 +860,9 @@
                         html += `
                             <div class="border border-slate-800/80 rounded-xl bg-slate-900/20 p-4 space-y-4">
                                 <div class="flex items-center justify-between pb-2 border-b border-slate-800/60">
-                                    <h3 class="text-xs font-extrabold uppercase tracking-wide text-indigo-400">${course.code} &middot; ${course.title}</h3>
+                                    <a href="/course/${course.id}" class="hover:underline transition">
+                                        <h3 class="text-xs font-extrabold uppercase tracking-wide text-indigo-400 hover:text-indigo-300">${course.code} &middot; ${course.title} ↗</h3>
+                                    </a>
                                     <span class="text-[10px] text-slate-500">${course.tasks.length} Assignments</span>
                                 </div>
                                 <div class="space-y-3">
@@ -1077,6 +1055,24 @@
                 if (modal.classList.contains('hidden')) {
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
+
+                    // Mark activities as read
+                    fetch("{{ route('activities.read') }}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                            "Content-Type": "application/json"
+                        }
+                    }).then(res => res.json())
+                      .then(data => {
+                          if (data.success) {
+                              const badge = document.getElementById('notification-badge');
+                              if (badge) {
+                                  badge.classList.add('hidden');
+                                  badge.textContent = '0';
+                              }
+                          }
+                      }).catch(err => console.error(err));
                 } else {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
@@ -1101,7 +1097,7 @@
         </script>
 
         <!-- Notifications Modal (Glassmorphic) -->
-        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
+        <div id="notifications-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[85vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">
@@ -1138,7 +1134,7 @@
         </div>
 
         <!-- Profile Modal (Glassmorphic) -->
-        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm">
+        <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
             <div class="glass-panel w-full max-w-lg rounded-2xl p-6 shadow-2xl border border-slate-700/50 flex flex-col max-h-[90vh]">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between border-b border-slate-700/50 pb-4 mb-4">

@@ -64,10 +64,10 @@ class TeacherDashboardController extends Controller
             'title' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:courses,code',
             'enrollment_fee' => 'required|integer|min:0',
-            'class' => 'required|string|in:Class 8,Class 9,Class 10',
+            'class' => 'required|string|in:Class 8,Class 9,Class 10,Class 11,Class 12',
             'description' => 'nullable|string',
             'course_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'subject' => 'required|string|max:100',
+            'subject' => 'nullable|string|max:100',
         ]);
 
         $imagePath = null;
@@ -302,7 +302,7 @@ class TeacherDashboardController extends Controller
             'title' => 'required|string|max:255',
             'code' => 'required|string|max:50|unique:courses,code,' . $course->id,
             'enrollment_fee' => 'required|integer|min:0',
-            'class' => 'required|string|in:Class 8,Class 9,Class 10',
+            'class' => 'required|string|in:Class 8,Class 9,Class 10,Class 11,Class 12',
             'description' => 'nullable|string',
         ]);
 
