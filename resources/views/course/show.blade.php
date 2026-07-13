@@ -495,6 +495,9 @@
                     💬 Q&A Discussion
                 </button>
                 @if(Auth::user()->isTeacher())
+                    <button onclick="switchTab('prepare-question')" id="tab-btn-prepare-question" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
+                        📝 Prepare Question
+                    </button>
                     <button onclick="switchTab('evaluations')" id="tab-btn-evaluations" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                         📝 Evaluate Submissions
                         @if($submissions->whereNull('score')->count() > 0)
@@ -517,32 +520,85 @@
             <!-- TAB CONTENT: CLASSES / LECTURES -->
             <div id="tab-content-classes" class="tab-pane hidden space-y-6">
                 <!-- If teacher, show creation consoles -->
-                <!-- If teacher, show "Add Class/Lecture" form -->
                 @if(Auth::user()->isTeacher())
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                        <h2 class="text-base font-bold text-white mb-4">Upload New Lecture / Class Detail</h2>
-                        <form action="{{ route('teacher.lectures.create', $course->id) }}" method="POST" class="space-y-4">
-                            @csrf
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Number / Code</label>
-                                    <input type="text" name="lecture_number" placeholder="e.g. Lecture 01" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left Panel: Schedule Live Virtual Class -->
+                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg flex flex-col h-full">
+                            <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">🎥</span>
+                                Schedule Live Virtual Class
+                            </h2>
+                            <form action="{{ route('teacher.classes.create') }}" method="POST" class="flex flex-col justify-between flex-grow">
+                                @csrf
+                                <input type="hidden" name="course_id" value="{{ $course->id }}">
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Class Topic / Title</label>
+                                        <input type="text" name="title" required placeholder="e.g. Chapter 4: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
+                                            <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-pink-500 transition">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
+                                            <input type="number" name="duration_minutes" required value="60" min="15" max="180" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-pink-500 transition text-center">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Platform</label>
+                                        <select name="platform" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
+                                            <option value="In-App Classroom">In-App Virtual Room</option>
+                                            <option value="Zoom">Zoom Meeting</option>
+                                            <option value="Google Meet">Google Meet</option>
+                                            <option value="Microsoft Teams">Microsoft Teams</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Meeting Link (Optional)</label>
+                                        <input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                                    </div>
                                 </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Name / Topic</label>
-                                    <input type="text" name="name" placeholder="e.g. Intro to Operating System Kernels" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs rounded-xl py-3 shadow-lg shadow-pink-600/20 active:scale-[0.98] transition cursor-pointer">
+                                        Schedule Class Session
+                                    </button>
                                 </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Details / Notes</label>
-                                <textarea name="details" rows="3" placeholder="Syllabus coverage, reference reading material, youtube/drive links..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-2 px-6 rounded-xl shadow transition cursor-pointer">
-                                    💾 Save & Publish Lecture
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
+
+                        <!-- Right Panel: Upload Lecture Material / Recorded details -->
+                        <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg flex flex-col h-full">
+                            <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="w-6 h-6 rounded bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">📚</span>
+                                Upload Recorded Lecture / Notes
+                            </h2>
+                            <form action="{{ route('teacher.lectures.create', $course->id) }}" method="POST" class="flex flex-col justify-between flex-grow">
+                                @csrf
+                                <div class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div>
+                                            <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Number</label>
+                                            <input type="text" name="lecture_number" placeholder="e.g. Lecture 01" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+                                        </div>
+                                        <div class="md:col-span-2">
+                                            <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Name / Topic</label>
+                                            <input type="text" name="name" placeholder="e.g. Intro to Operating System Kernels" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-slate-400 font-semibold mb-1">Lecture Details / Notes / Links</label>
+                                        <textarea name="details" rows="6" placeholder="Syllabus coverage, reference reading material, youtube/drive links..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-purple-500 transition"></textarea>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-3 rounded-xl shadow-lg transition cursor-pointer">
+                                        Save & Publish Lecture Material
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 @endif
 
@@ -555,6 +611,12 @@
                         return $c->is_active && now()->lessThanOrEqualTo($endTime);
                     });
 
+                    // Upcoming live classes: not active and duration not expired
+                    $upcomingClasses = $scheduled->filter(function($c) {
+                        $endTime = $c->scheduled_at->copy()->addMinutes($c->duration_minutes);
+                        return !$c->is_active && now()->lessThan($endTime);
+                    });
+
                     // Completed live classes
                     $completedClasses = $scheduled->filter(function($c) {
                         $endTime = $c->scheduled_at->copy()->addMinutes($c->duration_minutes);
@@ -565,7 +627,7 @@
                 <!-- Live Classes Section -->
                 @if($liveClasses->count() > 0)
                     @foreach($liveClasses as $liveClass)
-                        <div class="mb-6 p-5 border border-pink-500/40 bg-pink-950/10 rounded-2xl shadow-lg relative overflow-hidden">
+                        <div class="p-5 border border-pink-500/40 bg-pink-950/10 rounded-2xl shadow-lg relative overflow-hidden">
                             <div class="absolute -right-16 -top-16 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl"></div>
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
                                 <div class="space-y-1.5">
@@ -583,15 +645,69 @@
                                             $joinLink = route('classroom', $liveClass->id);
                                         }
                                     @endphp
-                                    @if($joinLink)
-                                        <a href="{{ $joinLink }}" target="_blank" class="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 px-5 rounded-xl border border-pink-500/20 transition cursor-pointer shadow-lg shadow-pink-600/20 text-xs">
-                                            💻 Join Live Class
-                                        </a>
+                                    @if(Auth::user()->isTeacher())
+                                        <form action="{{ route('teacher.classes.toggle-active', $liveClass->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold py-2.5 px-5 rounded-xl border border-slate-700/60 transition cursor-pointer">
+                                                ⏹ End Session
+                                            </button>
+                                        </form>
+                                        @if($joinLink)
+                                            <a href="{{ $joinLink }}" target="_blank" class="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 px-5 rounded-xl border border-purple-500/20 transition cursor-pointer shadow-lg shadow-purple-650/20 text-xs">
+                                                💻 Launch Classroom
+                                            </a>
+                                        @endif
+                                    @else
+                                        @if($joinLink)
+                                            <a href="{{ $joinLink }}" target="_blank" class="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 px-5 rounded-xl border border-pink-500/20 transition cursor-pointer shadow-lg shadow-pink-600/20 text-xs">
+                                                💻 Join Live Class
+                                            </a>
+                                        @endif
                                     @endif
                                 </div>
                             </div>
                         </div>
                     @endforeach
+                @endif
+
+                <!-- Upcoming Scheduled Classes -->
+                @if($upcomingClasses->count() > 0)
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4">Upcoming Scheduled Classes</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach($upcomingClasses as $class)
+                                <div class="border border-slate-800/80 bg-slate-900/20 rounded-xl p-4 flex flex-col justify-between gap-4 transition-all duration-300">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                                Upcoming Session
+                                            </span>
+                                            <span class="text-xs text-slate-400">Duration: {{ $class->duration_minutes }} Mins</span>
+                                        </div>
+                                        <h3 class="text-sm font-bold text-white mt-1">{{ $class->title }}</h3>
+                                        <p class="text-[10px] text-slate-400">
+                                            Scheduled: {{ $class->scheduled_at->format('M d, Y - H:i') }} ({{ $class->scheduled_at->diffForHumans() }})
+                                        </p>
+                                        <p class="text-[10px] text-slate-400">Platform: <strong>{{ $class->platform }}</strong></p>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        @if(Auth::user()->isTeacher())
+                                            <form action="{{ route('teacher.classes.toggle-active', $class->id) }}" method="POST" class="w-full">
+                                                @csrf
+                                                <button type="submit" class="w-full text-xs bg-pink-600 hover:bg-pink-500 text-white font-bold py-2 px-3.5 rounded-lg border border-pink-500/20 transition cursor-pointer shadow-md shadow-pink-600/10">
+                                                    ▶ Start Class
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button disabled class="w-full text-xs bg-slate-800 text-slate-500 font-bold py-2 px-3.5 rounded-lg border border-slate-700/40 cursor-not-allowed">
+                                                ⏳ Waiting for Host to Start
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 @endif
 
                 <!-- List of Lectures -->
@@ -1098,111 +1214,6 @@
                                 </table>
                             </div>
                         @endif
-                </div>
-
-                <!-- TAB CONTENT: SCHEDULE & START CLASSES -->
-                <div id="tab-content-schedule-classes" class="tab-pane hidden space-y-6">
-                    <!-- Top: Schedule Class Form (Full Width) -->
-                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
-                        <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <span class="w-6 h-6 rounded bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">🎥</span>
-                            Schedule Virtual Class
-                        </h2>
-                        <form action="{{ route('teacher.classes.create') }}" method="POST" class="space-y-4">
-                            @csrf
-                            <input type="hidden" name="course_id" value="{{ $course->id }}">
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Class Topic / Title</label>
-                                <input type="text" name="title" required placeholder="e.g. Chapter 4: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
-                                <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
-                                <input type="number" name="duration_minutes" required value="60" min="15" max="180" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Platform</label>
-                                <select name="platform" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
-                                    <option value="In-App Classroom">In-App Virtual Room</option>
-                                    <option value="Zoom">Zoom Meeting</option>
-                                    <option value="Google Meet">Google Meet</option>
-                                    <option value="Microsoft Teams">Microsoft Teams</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 font-semibold mb-1">Meeting Link (Optional)</label>
-                                <input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
-                            </div>
-                            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-pink-600/20 active:scale-[0.98] transition cursor-pointer">
-                                Schedule Class Session
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Bottom: Live Class Schedule (Full Width) -->
-                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
-                        <h2 class="text-base font-bold text-white mb-4">Live Class Schedule</h2>
-                        
-                        @php
-                            $courseScheduledClasses = $course->scheduledClasses->filter(function ($class) {
-                                $endTime = $class->scheduled_at->copy()->addMinutes($class->duration_minutes);
-                                return now()->lessThanOrEqualTo($endTime);
-                            });
-                        @endphp
-
-                        @if($courseScheduledClasses->count() === 0)
-                            <div class="text-center py-16 text-slate-500 text-sm italic">
-                                No classes scheduled yet. Create one using the scheduling form above.
-                            </div>
-                        @else
-                            <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
-                                @foreach($courseScheduledClasses as $class)
-                                    <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/80 bg-slate-900/20' }} rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
-                                        <div class="space-y-1">
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                                    {{ $class->course->code }}
-                                                </span>
-                                                <span class="text-xs text-slate-400">Duration: {{ $class->duration_minutes }} Mins</span>
-                                                @if($class->is_active)
-                                                    <span class="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
-                                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
-                                                    </span>
-                                                @endif
-                                            </div>
-                                            <h3 class="text-sm font-bold text-white">{{ $class->title }}</h3>
-                                            <p class="text-[10px] text-slate-500">
-                                                Scheduled: {{ $class->scheduled_at->format('M d, Y - H:i') }} ({{ $class->scheduled_at->diffForHumans() }})
-                                            </p>
-                                            <p class="text-[10px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></p>
-                                            <div class="flex items-center gap-2">
-                                                <!-- Start / End Toggle Button -->
-                                                <form action="{{ route('teacher.classes.toggle-active', $class->id) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="text-xs px-3.5 py-2 font-bold rounded-lg transition border cursor-pointer {{ $class->is_active ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60' : 'bg-pink-600 hover:bg-pink-500 text-white border-pink-500/20 shadow-md shadow-pink-600/10' }}">
-                                                        {{ $class->is_active ? '⏹ End Session' : '▶ Start Class' }}
-                                                    </button>
-                                                </form>
-
-                                                <!-- Enter Classroom Simulation -->
-                                                @if($class->platform === 'In-App Classroom')
-                                                    <a href="{{ route('classroom', $class->id) }}" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-3.5 rounded-lg border border-purple-500/20 transition cursor-pointer shadow-md shadow-purple-655/10">
-                                                        💻 Launch Classroom
-                                                    </a>
-                                                @elseif($class->meeting_link)
-                                                    <a href="{{ $class->meeting_link }}" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
-                                                        🔗 External Link
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
                     </div>
                 </div>
             @endif
@@ -1329,9 +1340,142 @@
                 if (document.getElementById('tab-btn-' + savedTab)) {
                     switchTab(savedTab);
                 }
+
+                const list = document.getElementById('test-questions-list');
+                if (list && list.children.length === 0) {
+                    addQuestion();
+                }
             });
 
+            // Grading Modal Actions
+            function handleGradingButtonClick(btn) {
+                const modal = document.getElementById('grading-modal');
+                const form = document.getElementById('grading-form');
+                
+                const submissionId = btn.getAttribute('data-id');
+                const studentName = btn.getAttribute('data-student');
+                const taskTitle = btn.getAttribute('data-task-title');
+                const maxPoints = btn.getAttribute('data-max-points');
+                const currentScore = btn.getAttribute('data-score');
+                const currentFeedback = btn.getAttribute('data-feedback');
+                const isTest = parseInt(btn.getAttribute('data-is-test'));
+                const questions = JSON.parse(btn.getAttribute('data-questions') || '[]');
+                const answers = JSON.parse(btn.getAttribute('data-answers') || '{}');
+                const uploadedFile = btn.getAttribute('data-file');
 
+                form.action = `/teacher/submissions/${submissionId}/evaluate`;
+                
+                document.getElementById('grading-student').textContent = studentName;
+                document.getElementById('grading-task-title').textContent = taskTitle;
+                document.getElementById('grading-max-points').textContent = maxPoints;
+                document.getElementById('grading-feedback').value = currentFeedback;
+
+                // Handle Khata Image file block
+                const khataBlock = document.getElementById('grading-khata-block');
+                const khataImg = document.getElementById('grading-khata-img');
+                const khataLink = document.getElementById('grading-khata-link');
+                if (uploadedFile) {
+                    khataImg.src = uploadedFile;
+                    khataLink.href = uploadedFile;
+                    khataBlock.classList.remove('hidden');
+                } else {
+                    khataImg.src = '';
+                    khataLink.href = '#';
+                    khataBlock.classList.add('hidden');
+                }
+
+                const standardBlock = document.getElementById('grading-standard-block');
+                const testBlock = document.getElementById('grading-test-questions-block');
+                
+                if (isTest) {
+                    standardBlock.classList.add('hidden');
+                    testBlock.classList.remove('hidden');
+                    document.getElementById('grading-score').required = false;
+
+                    document.getElementById('grading-test-max-marks').textContent = maxPoints;
+                    
+                    const qListContainer = document.getElementById('grading-questions-list');
+                    qListContainer.innerHTML = '';
+                    
+                    const questionGrades = answers.question_grades || {};
+                    
+                    questions.forEach((q, idx) => {
+                        const questionId = q.id;
+                        const studentAnswer = answers[questionId] || 'No Answer.';
+                        const scoreVal = questionGrades[questionId] !== undefined ? questionGrades[questionId] : '';
+                        
+                        const qRow = document.createElement('div');
+                        qRow.className = 'py-3 space-y-2';
+                        
+                        let answerSnippet = '';
+                        if (q.type === 'mcq') {
+                            answerSnippet = `
+                                <div class="text-[10px] text-slate-400 bg-slate-900/50 rounded px-2.5 py-1 inline-block border border-slate-800">
+                                    Student Answer: <strong class="text-indigo-400">${studentAnswer}</strong>
+                                </div>
+                            `;
+                        } else if (q.type === 'written') {
+                            answerSnippet = `
+                                <div class="bg-slate-950/30 border border-slate-900 p-2.5 rounded-xl text-[11px] text-slate-300 leading-relaxed font-mono">
+                                    ${studentAnswer}
+                                </div>
+                            `;
+                        } else if (q.type === 'file') {
+                            answerSnippet = `
+                                <div class="text-[10px] text-slate-400 italic">
+                                    Answers submitted via Khata file. (Check the Khata preview panel below)
+                                </div>
+                            `;
+                        }
+
+                        qRow.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div class="max-w-[85%]">
+                                    <span class="text-[10px] uppercase font-bold text-slate-500">Q${idx + 1} (${q.type.toUpperCase()})</span>
+                                    <div class="text-xs font-bold text-slate-200 mt-0.5">${q.question_text}</div>
+                                </div>
+                                <div class="flex items-center gap-1.5 flex-shrink-0">
+                                    <input type="number" name="question_scores[${questionId}]" value="${scoreVal}" required min="0" max="${q.points}" oninput="calculateGradingTotal()" class="question-grade-input w-16 bg-slate-900/60 border border-slate-800 rounded-xl py-1 px-2 text-xs font-bold text-slate-200 text-center outline-none focus:border-purple-500 transition">
+                                    <span class="text-[10px] text-slate-500">/ ${q.points}</span>
+                                </div>
+                            </div>
+                            <div class="pt-1">
+                                ${answerSnippet}
+                            </div>
+                        `;
+                        qListContainer.appendChild(qRow);
+                    });
+                    
+                    calculateGradingTotal();
+                } else {
+                    standardBlock.classList.remove('hidden');
+                    testBlock.classList.add('hidden');
+                    
+                    const scoreInput = document.getElementById('grading-score');
+                    scoreInput.required = true;
+                    scoreInput.value = currentScore;
+                    scoreInput.max = maxPoints;
+                    
+                    document.getElementById('grading-max-points-label').textContent = maxPoints;
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            function calculateGradingTotal() {
+                let total = 0;
+                document.querySelectorAll('.question-grade-input').forEach(input => {
+                    total += parseInt(input.value || 0);
+                });
+                document.getElementById('grading-calculated-total').textContent = total;
+            }
+
+            function closeGradingModal() {
+                const modal = document.getElementById('grading-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
 
             // Auto-hide session status notifications after 5 seconds
             setTimeout(() => {
@@ -1426,6 +1570,112 @@
                 .catch(err => console.error(err));
             }
 
+            // Dynamic Question Builder JS
+            let questionCount = 0;
+            function addQuestion() {
+                const list = document.getElementById('test-questions-list');
+                if (!list) return;
+                const index = questionCount++;
+                
+                const qBlock = document.createElement('div');
+                qBlock.id = `q-block-${index}`;
+                qBlock.className = 'bg-slate-955/60 border border-slate-800/80 rounded-xl p-4 space-y-4 relative shadow-md';
+                qBlock.innerHTML = `
+                    <button type="button" onclick="removeQuestion(${index})" class="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer">🗑️ Delete</button>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                        <div class="md:col-span-7">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question ${index + 1} Text</label>
+                            <input type="text" name="questions[${index}][text]" required placeholder="e.g. Write a brief history of Turing Machines." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question Type</label>
+                            <select name="questions[${index}][type]" onchange="handleTypeChange(this, ${index})" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-indigo-500 transition cursor-pointer">
+                                <option value="written">Written Text Response</option>
+                                <option value="mcq">Multiple Choice (MCQ)</option>
+                                <option value="file">File Upload (Notebook / Khata)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Marks</label>
+                            <input type="number" name="questions[${index}][points]" required value="5" min="1" oninput="updateTotalPoints()" class="points-input w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition text-center font-bold">
+                        </div>
+                    </div>
+
+                    <!-- MCQ Options block (Hidden by default) -->
+                    <div id="options-block-${index}" class="hidden pl-4 border-l-2 border-indigo-500/20 space-y-2">
+                        <label class="block text-[10px] text-slate-500 font-bold uppercase">MCQ Choice Options</label>
+                        <div id="options-container-${index}" class="space-y-2">
+                            <div class="flex items-center gap-2 option-row">
+                                <span class="text-xs text-slate-500 font-mono">1.</span>
+                                <input type="text" name="questions[${index}][options][]" value="Option A" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                                <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                            </div>
+                            <div class="flex items-center gap-2 option-row">
+                                <span class="text-xs text-slate-500 font-mono">2.</span>
+                                <input type="text" name="questions[${index}][options][]" value="Option B" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                                <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addOption(${index})" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">+ Add Choice Option</button>
+                    </div>
+                `;
+                
+                list.appendChild(qBlock);
+                updateTotalPoints();
+            }
+
+            function removeQuestion(index) {
+                const block = document.getElementById(`q-block-${index}`);
+                if (block) {
+                    block.remove();
+                }
+                updateTotalPoints();
+            }
+
+            function handleTypeChange(select, index) {
+                const optionsBlock = document.getElementById(`options-block-${index}`);
+                if (select.value === 'mcq') {
+                    optionsBlock.classList.remove('hidden');
+                    optionsBlock.querySelectorAll('input').forEach(i => i.required = true);
+                } else {
+                    optionsBlock.classList.add('hidden');
+                    optionsBlock.querySelectorAll('input').forEach(i => i.required = false);
+                }
+            }
+
+            function addOption(qIndex) {
+                const container = document.getElementById(`options-container-${qIndex}`);
+                const rowsCount = container.children.length;
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-2 option-row';
+                row.innerHTML = `
+                    <span class="text-xs text-slate-500 font-mono">${rowsCount + 1}.</span>
+                    <input type="text" name="questions[${qIndex}][options][]" required placeholder="Option Choice" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                    <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                `;
+                container.appendChild(row);
+            }
+
+            function removeOption(btn) {
+                const row = btn.parentElement;
+                const container = row.parentElement;
+                if (container.children.length > 1) {
+                    row.remove();
+                    Array.from(container.children).forEach((child, idx) => {
+                        child.querySelector('span').textContent = `${idx + 1}.`;
+                    });
+                }
+            }
+
+            function updateTotalPoints() {
+                let sum = 0;
+                document.querySelectorAll('.points-input').forEach(input => {
+                    sum += parseInt(input.value || 0);
+                });
+                const totalMarksEl = document.getElementById('builder-total-marks');
+                if (totalMarksEl) totalMarksEl.textContent = sum;
+            }
         </script>
     </body>
 </html>
