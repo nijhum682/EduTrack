@@ -173,6 +173,7 @@
             body.theme-space-light button,
             body.theme-space-light input[type="submit"],
             body.theme-space-light .btn-text-white,
+            body.theme-space-light .status-badge,
             body.theme-space-light a.bg-indigo-600,
             body.theme-space-light a.bg-indigo-650 {
                 color: #ffffff !important;
@@ -335,6 +336,48 @@
                 color: #f1f5f9 !important;
             }
 
+            /* Live Class Card Text Overrides */
+            body.theme-space-light .completed-live-class-card h3 {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .completed-live-class-card p,
+            body.theme-space-light .completed-live-class-card p strong {
+                color: #334155 !important;
+            }
+            body.theme-space-light .completed-live-class-card span {
+                color: #475569 !important;
+            }
+            body.theme-space-dark .completed-live-class-card h3 {
+                color: #ffffff !important;
+            }
+            body.theme-space-dark .completed-live-class-card p,
+            body.theme-space-dark .completed-live-class-card p strong {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .completed-live-class-card span {
+                color: #94a3b8 !important;
+            }
+
+            /* Recorded Lecture Card Text Overrides */
+            body.theme-space-light .lecture-card h3 {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .lecture-card p {
+                color: #334155 !important;
+            }
+            body.theme-space-light .lecture-card span {
+                color: #475569 !important;
+            }
+            body.theme-space-dark .lecture-card h3 {
+                color: #ffffff !important;
+            }
+            body.theme-space-dark .lecture-card p {
+                color: #cbd5e1 !important;
+            }
+            body.theme-space-dark .lecture-card span {
+                color: #94a3b8 !important;
+            }
+
             /* Force white text on status badges regardless of theme overrides */
             body.theme-space-light span.status-badge,
             body.theme-space-dark span.status-badge,
@@ -343,19 +386,9 @@
             span.status-badge {
                 color: #ffffff !important;
             }
-            
-            /* Keep white text visible on premium buttons in light theme */
-            body.theme-space-light button,
-            body.theme-space-light input[type="submit"],
-            body.theme-space-light .btn-text-white,
-            body.theme-space-light .status-badge,
-            body.theme-space-light a.bg-indigo-600,
-            body.theme-space-light a.bg-indigo-650 {
-                color: #ffffff !important;
-            }
         </style>
     </head>
-    <body class="theme-space-dark min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
+    <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
         
         <!-- Header Navigation Bar -->
         <header class="border-b border-slate-800/80 bg-slate-900/40 backdrop-blur-xl sticky top-0 z-50">
@@ -390,10 +423,6 @@
 
                 <!-- Theme Switcher & User Details -->
                 <div class="flex items-center gap-3">
-                    <!-- Theme Switcher Button -->
-                    <button id="theme-toggle" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl border border-slate-700/50 transition cursor-pointer flex items-center justify-center" title="Toggle Theme">
-                    </button>
-
                     <a href="{{ Auth::user()->isTeacher() ? route('teacher.dashboard') : route('dashboard') }}" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition cursor-pointer shadow-md shadow-indigo-600/20">
                         ← Back to Dashboard
                     </a>
@@ -465,6 +494,14 @@
                 <button onclick="switchTab('qa')" id="tab-btn-qa" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                     💬 Q&A Discussion
                 </button>
+                @if(Auth::user()->isTeacher())
+                    <button onclick="switchTab('evaluations')" id="tab-btn-evaluations" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
+                        📝 Evaluate Submissions
+                        @if($submissions->whereNull('score')->count() > 0)
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        @endif
+                    </button>
+                @endif
             </div>
 
             <!-- TAB CONTENT: DETAILS -->
@@ -479,6 +516,7 @@
 
             <!-- TAB CONTENT: CLASSES / LECTURES -->
             <div id="tab-content-classes" class="tab-pane hidden space-y-6">
+                <!-- If teacher, show creation consoles -->
                 <!-- If teacher, show "Add Class/Lecture" form -->
                 @if(Auth::user()->isTeacher())
                     <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
@@ -508,26 +546,228 @@
                     </div>
                 @endif
 
+                @php
+                    $scheduled = $course->scheduledClasses ?? collect();
+                    
+                    // Live classes: active and duration not expired
+                    $liveClasses = $scheduled->filter(function($c) {
+                        $endTime = $c->scheduled_at->copy()->addMinutes($c->duration_minutes);
+                        return $c->is_active && now()->lessThanOrEqualTo($endTime);
+                    });
+
+                    // Completed live classes
+                    $completedClasses = $scheduled->filter(function($c) {
+                        $endTime = $c->scheduled_at->copy()->addMinutes($c->duration_minutes);
+                        return !$c->is_active || now()->greaterThan($endTime);
+                    });
+                @endphp
+
+                <!-- Live Classes Section -->
+                @if($liveClasses->count() > 0)
+                    @foreach($liveClasses as $liveClass)
+                        <div class="mb-6 p-5 border border-pink-500/40 bg-pink-950/10 rounded-2xl shadow-lg relative overflow-hidden">
+                            <div class="absolute -right-16 -top-16 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl"></div>
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                                <div class="space-y-1.5">
+                                    <span class="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Class in Progress
+                                    </span>
+                                    <h3 class="text-base font-extrabold text-white">{{ $liveClass->title }}</h3>
+                                    <p class="text-xs text-slate-300">Instructor: {{ $course->instructor }} &middot; Platform: <strong>{{ $liveClass->platform }}</strong> &middot; Duration: <strong>{{ $liveClass->duration_minutes }} Mins</strong></p>
+                                    <p class="text-[10px] text-slate-400 italic">Started at: {{ $liveClass->scheduled_at->format('M d, H:i') }} (ends at {{ $liveClass->scheduled_at->copy()->addMinutes($liveClass->duration_minutes)->format('H:i') }})</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    @php
+                                        $joinLink = $liveClass->meeting_link;
+                                        if ($liveClass->platform === 'In-App Classroom') {
+                                            $joinLink = route('classroom', $liveClass->id);
+                                        }
+                                    @endphp
+                                    @if($joinLink)
+                                        <a href="{{ $joinLink }}" target="_blank" class="inline-flex items-center gap-2 bg-pink-600 hover:bg-pink-500 text-white font-bold py-2.5 px-5 rounded-xl border border-pink-500/20 transition cursor-pointer shadow-lg shadow-pink-600/20 text-xs">
+                                            💻 Join Live Class
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @endif
+
                 <!-- List of Lectures -->
                 <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
                     <h2 class="text-lg font-bold text-white mb-4">Course Lectures & Classes</h2>
-                    @if($course->lectures->count() === 0)
+                    @if($course->lectures->count() === 0 && $completedClasses->count() === 0)
                         <div class="text-center py-12 text-slate-500 text-sm italic">
-                            No lectures or classes have been uploaded for this course yet.
+                            No lectures or classes have been uploaded or taken for this course yet.
                         </div>
                     @else
                         <div class="space-y-4">
-                            @foreach($course->lectures as $lecture)
-                                <div class="border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 flex flex-col md:flex-row md:items-start gap-4 transition duration-300">
-                                    <div class="flex-shrink-0">
-                                        <span class="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-purple-500/10 text-purple-300 border border-purple-500/20 uppercase tracking-wide block text-center md:inline-block">
-                                            {{ $lecture->lecture_number }}
-                                        </span>
+                            <!-- Completed Live Classes -->
+                            @foreach($completedClasses as $completedClass)
+                                <div class="completed-live-class-card border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition duration-300">
+                                    <div class="flex flex-col md:flex-row md:items-center gap-4 flex-grow">
+                                        <div class="flex-shrink-0">
+                                            <span class="status-badge px-3 py-1.5 rounded-lg text-xs font-extrabold bg-purple-600 text-white border border-purple-500 uppercase tracking-wide block text-center md:inline-block">
+                                                Live Class
+                                            </span>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <h3 class="text-base font-bold text-slate-900 dark:text-white">{{ $completedClass->title }}</h3>
+                                            <p class="text-slate-600 dark:text-slate-350 text-xs leading-relaxed">
+                                                Platform: <strong class="text-slate-800 dark:text-slate-200">{{ $completedClass->platform }}</strong> &middot; Duration: <strong class="text-slate-800 dark:text-slate-200">{{ $completedClass->duration_minutes }} Mins</strong>
+                                            </p>
+                                            <span class="text-[10px] text-slate-500 block">Taken on {{ $completedClass->scheduled_at->format('M d, Y') }}</span>
+                                        </div>
                                     </div>
-                                    <div class="flex-grow space-y-2">
-                                        <h3 class="text-base font-bold text-white">{{ $lecture->name }}</h3>
-                                        <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ $lecture->details ?: 'No details provided.' }}</p>
-                                        <span class="text-[10px] text-slate-500 block">Uploaded on {{ $lecture->created_at->format('M d, Y H:i') }}</span>
+                                    @php
+                                        $joinLink = $completedClass->meeting_link;
+                                        if ($completedClass->platform === 'In-App Classroom') {
+                                            $joinLink = route('classroom', $completedClass->id);
+                                        }
+                                    @endphp
+                                    @if($joinLink)
+                                        <div class="flex-shrink-0 w-full md:w-auto text-right">
+                                             <a href="{{ $joinLink }}" target="_blank" class="w-full md:w-auto bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl border border-pink-500/20 shadow-md shadow-pink-600/10 transition cursor-pointer inline-block text-center">
+                                                 See Class
+                                             </a>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+
+                            <!-- Recorded Lectures -->
+                            @foreach($course->lectures as $lecture)
+                                <div class="lecture-card border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 space-y-4 transition duration-300">
+                                    <div class="flex flex-col md:flex-row md:items-start gap-4">
+                                        <div class="flex-shrink-0">
+                                            <span class="status-badge px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white uppercase tracking-wider block text-center md:inline-block shadow-sm">
+                                                Recorded
+                                            </span>
+                                        </div>
+                                        <div class="flex-grow space-y-2">
+                                            <h3 class="text-base font-bold text-white"><span class="text-xs font-semibold text-purple-400">[{{ $lecture->lecture_number }}]</span> {{ $lecture->name }}</h3>
+                                            <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ $lecture->details ?: 'No details provided.' }}</p>
+                                            
+                                            @if($lecture->video_path)
+                                                <div class="mt-3 border border-slate-800/85 rounded-xl overflow-hidden bg-slate-950/40">
+                                                    <video controls class="w-full max-h-80 object-contain">
+                                                        <source src="{{ asset($lecture->video_path) }}" type="video/mp4">
+                                                        Your browser does not support the video tag.
+                                                    </video>
+                                                </div>
+                                            @endif
+
+                                            <span class="text-[10px] text-slate-500 block pt-1">Uploaded on {{ $lecture->created_at->format('M d, Y H:i') }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Facebook-like Action Bar (Like & Comment buttons) -->
+                                    <div class="flex items-center gap-6 py-2 border-y border-slate-800/40 my-3 text-xs text-slate-400">
+                                        <!-- Like Button (AJAX Post) -->
+                                        <form id="like-form-{{ $lecture->id }}" class="inline">
+                                            @csrf
+                                            <button type="button" onclick="toggleLikeAjax({{ $lecture->id }}, '{{ route('course.lectures.like', [$course->id, $lecture->id]) }}')" class="like-btn-{{ $lecture->id }} lecture-action-btn flex items-center gap-1.5 font-semibold transition cursor-pointer {{ $lecture->isLikedBy(Auth::user()) ? 'liked-active' : '' }}">
+                                                <span>👍</span>
+                                                <span class="like-text">{{ $lecture->isLikedBy(Auth::user()) ? 'Liked' : 'Like' }}</span>
+                                                <span class="like-count action-count px-1.5 py-0.5 rounded text-[10px] font-bold {{ $lecture->likes->count() === 0 ? 'hidden' : '' }}">
+                                                    {{ $lecture->likes->count() }}
+                                                </span>
+                                            </button>
+                                        </form>
+
+                                        <!-- Comment Trigger Icon/Button -->
+                                        <button onclick="toggleCommentsSection({{ $lecture->id }})" class="lecture-action-btn flex items-center gap-1.5 font-semibold transition cursor-pointer">
+                                            <span>💬</span>
+                                            <span>Comment</span>
+                                            @if($lecture->comments->count() > 0)
+                                                <span class="action-count px-1.5 py-0.5 rounded text-[10px] font-bold">{{ $lecture->comments->count() }}</span>
+                                            @endif
+                                        </button>
+                                    </div>
+
+                                    <!-- Comments section for this lecture class -->
+                                    <div id="comments-section-{{ $lecture->id }}" class="hidden mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-3">
+                                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200">Comments & Discussion ({{ $lecture->comments->count() }})</h4>
+                                        
+                                        <!-- Comments list -->
+                                        @if($lecture->rootComments->count() > 0)
+                                            <div class="space-y-3">
+                                                @foreach($lecture->rootComments as $comment)
+                                                    <div class="lecture-comment-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 text-xs space-y-1.5 shadow-sm">
+                                                        <div class="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <strong class="font-bold {{ $comment->user->isTeacher() ? 'text-purple-600 dark:text-purple-400' : 'text-slate-900 dark:text-slate-100' }}">{{ $comment->user->name }}</strong>
+                                                                @if($comment->user->isTeacher())
+                                                                    <span class="text-[8px] font-extrabold uppercase border px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60">Teacher</span>
+                                                                @endif
+                                                            </span>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span class="lecture-comment-meta">{{ $comment->created_at->diffForHumans() }}</span>
+                                                                <span class="text-slate-300 dark:text-slate-700">&middot;</span>
+                                                                <button type="button" onclick="setLectureReplyParent({{ $lecture->id }}, {{ $comment->id }}, '{{ $comment->user->name }}')" class="lecture-comment-btn bg-transparent border-0 p-0 font-semibold hover:underline cursor-pointer text-slate-800 dark:text-slate-200">Reply</button>
+                                                                @if(Auth::id() === $comment->user_id || Auth::user()->isTeacher())
+                                                                    <span class="text-slate-300 dark:text-slate-700">&middot;</span>
+                                                                    <form action="{{ route('course.lectures.comment.delete', [$course->id, $lecture->id, $comment->id]) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('Delete this comment?');">
+                                                                        @csrf
+                                                                        <button type="submit" class="lecture-comment-btn bg-transparent border-0 p-0 font-semibold hover:underline cursor-pointer text-slate-800 dark:text-slate-200">Delete</button>
+                                                                    </form>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <p class="leading-relaxed font-semibold text-slate-900 dark:text-slate-100">{{ $comment->comment_text }}</p>
+
+                                                        <!-- Replies -->
+                                                        @if($comment->replies->count() > 0)
+                                                            <div class="pl-3.5 mt-2 border-l border-slate-200 dark:border-slate-800 space-y-2">
+                                                                @foreach($comment->replies as $reply)
+                                                                    <div class="lecture-reply-card bg-slate-50 dark:bg-slate-950/40 border border-slate-150 dark:border-slate-850 p-2.5 rounded-lg space-y-1">
+                                                                        <div class="flex justify-between items-center text-[10px] text-slate-500 dark:text-slate-400">
+                                                                            <span class="flex items-center gap-1">
+                                                                                <strong class="font-bold {{ $reply->user->isTeacher() ? 'text-purple-600 dark:text-purple-400' : 'text-slate-900 dark:text-slate-100' }}">{{ $reply->user->name }}</strong>
+                                                                                @if($reply->user->isTeacher())
+                                                                                    <span class="text-[8px] font-extrabold uppercase border px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60">Teacher</span>
+                                                                                @endif
+                                                                            </span>
+                                                                            <div class="flex items-center gap-1.5">
+                                                                                <span class="lecture-comment-meta">{{ $reply->created_at->diffForHumans() }}</span>
+                                                                                @if(Auth::id() === $reply->user_id || Auth::user()->isTeacher())
+                                                                                    <span class="text-slate-300 dark:text-slate-700">&middot;</span>
+                                                                                    <form action="{{ route('course.lectures.comment.delete', [$course->id, $lecture->id, $reply->id]) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('Delete this reply?');">
+                                                                                        @csrf
+                                                                                        <button type="submit" class="lecture-comment-btn bg-transparent border-0 p-0 font-semibold hover:underline cursor-pointer text-slate-800 dark:text-slate-200">Delete</button>
+                                                                                    </form>
+                                                                                @endif
+                                                                            </div>
+                                                                        </div>
+                                                                        <p class="text-[10px] leading-relaxed font-semibold text-slate-800 dark:text-slate-200">{{ $reply->comment_text }}</p>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        <!-- Comment input form -->
+                                        <form action="{{ route('course.lectures.comment', [$course->id, $lecture->id]) }}" method="POST" class="space-y-2">
+                                            @csrf
+                                            <input type="hidden" name="parent_id" id="lecture-parent-input-{{ $lecture->id }}" value="">
+                                            
+                                            <!-- Reply Indicator -->
+                                            <div id="lecture-reply-indicator-{{ $lecture->id }}" class="hidden flex justify-between items-center bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-lg px-2.5 py-1 text-[10px] text-slate-700 dark:text-slate-350">
+                                                <span>Replying to: <strong class="text-indigo-600 dark:text-indigo-400" id="lecture-reply-user-{{ $lecture->id }}"></strong></span>
+                                                <button type="button" onclick="cancelLectureReply({{ $lecture->id }})" class="text-red-600 dark:text-red-400 hover:underline font-bold cursor-pointer">&times; Cancel</button>
+                                            </div>
+
+                                            <div class="flex gap-2">
+                                                <input type="text" name="comment_text" required placeholder="Write a comment or click Reply..." class="flex-grow bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg py-1.5 px-3 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-purple-500 transition shadow-sm">
+                                                <button type="submit" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold text-[10px] py-1 px-3 rounded-lg shadow transition cursor-pointer">
+                                                    Comment
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             @endforeach
@@ -712,7 +952,344 @@
                 </div>
             </div>
 
+            @if(Auth::user()->isTeacher())
+                <!-- TAB CONTENT: PREPARE QUESTION -->
+                <div id="tab-content-prepare-question" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <div class="pb-4 border-b border-slate-800 flex justify-between items-center mb-6">
+                            <div>
+                                <h3 class="text-lg font-bold text-white">EduTrack Question Maker</h3>
+                                <p class="text-xs text-slate-400 mt-0.5">Design exam papers with dynamic question distribution</p>
+                            </div>
+                            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2 text-right">
+                                <span class="text-[9px] uppercase font-bold text-indigo-400 block">Total Marks</span>
+                                <span class="text-base font-extrabold text-white" id="builder-total-marks">0</span>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-5">
+                            @csrf
+                            <input type="hidden" name="is_test" value="1">
+                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+
+                            <!-- Test Meta Details -->
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-8">
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Test Title</label>
+                                    <input type="text" name="title" required placeholder="e.g. Midterm: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition">
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Minutes)</label>
+                                    <input type="number" name="duration_minutes" required value="60" min="5" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition text-center font-bold">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <div class="md:col-span-8">
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Instructions / Description</label>
+                                    <input type="text" name="description" placeholder="Instructions: Answer all questions. For files, upload your clear khata photo." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-indigo-500 transition">
+                                </div>
+                                <div class="md:col-span-4">
+                                    <label class="block text-xs text-slate-400 font-semibold mb-1">Due Date</label>
+                                    <input type="date" name="due_date" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-300 outline-none focus:border-indigo-500 transition">
+                                </div>
+                            </div>
+
+                            <!-- Dynamic Questions Container -->
+                            <div class="border-t border-slate-800/80 pt-4 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions List</h4>
+                                    <button type="button" onclick="addQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-1.5 px-3.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10">
+                                        + Add Question
+                                    </button>
+                                </div>
+
+                                <!-- Question card elements go here -->
+                                <div id="test-questions-list" class="space-y-4">
+                                    <!-- JS templates insert here -->
+                                </div>
+                            </div>
+
+                            <!-- Submit Footer -->
+                            <div class="border-t border-slate-800 pt-4 flex justify-end gap-3 flex-shrink-0">
+                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3.5 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-indigo-650/20 active:scale-[0.98]">
+                                    Save & Publish Test
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT: EVALUATE SUBMISSIONS -->
+                <div id="tab-content-evaluations" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
+                        <div class="mb-6">
+                            <h2 class="text-base font-bold text-white">Student Submission Evaluation Console</h2>
+                            <p class="text-xs text-slate-400">Review student task completions and assign grades/feedback</p>
+                        </div>
+
+                        @if($submissions->count() === 0)
+                            <div class="text-center py-16 text-slate-500 text-sm italic">
+                                No student submissions found. Active student task completions will appear here.
+                            </div>
+                        @else
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+                                            <th class="py-3 px-4">Student</th>
+                                            <th class="py-3 px-4">Task/Question</th>
+                                            <th class="py-3 px-4">Completed On</th>
+                                            <th class="py-3 px-4">Score</th>
+                                            <th class="py-3 px-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-850">
+                                        @foreach($submissions as $sub)
+                                            <tr class="hover:bg-slate-900/20 transition-colors">
+                                                <!-- Student Info -->
+                                                <td class="py-4 px-4">
+                                                    <div class="font-bold text-slate-200">{{ $sub->user->name }}</div>
+                                                    <div class="text-[10px] text-slate-500">{{ $sub->user->email }}</div>
+                                                </td>
+                                                <!-- Task -->
+                                                <td class="py-4 px-4">
+                                                    <div class="font-medium text-slate-200">{{ $sub->task->title }}</div>
+                                                    <div class="text-[9px] text-slate-500">Max Weight: {{ $sub->task->points }} pts</div>
+                                                </td>
+                                                <!-- Date -->
+                                                <td class="py-4 px-4 text-slate-400">
+                                                    {{ $sub->updated_at->format('M d, Y - H:i') }}
+                                                </td>
+                                                <!-- Score/Status -->
+                                                <td class="py-4 px-4">
+                                                    @if(is_null($sub->score))
+                                                        <span class="text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20 text-[10px]">
+                                                            ⏳ Pending Evaluation
+                                                        </span>
+                                                    @else
+                                                        <div class="font-bold text-emerald-400 text-sm">
+                                                            {{ $sub->score }} <span class="text-[10px] text-slate-500">/ {{ $sub->task->points }}</span>
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-500 italic mt-0.5">Feedback: "{{ Str::limit($sub->feedback ?: 'No remarks', 30) }}"</div>
+                                                    @endif
+                                                </td>
+                                                <!-- Actions -->
+                                                <td class="py-4 px-4 text-right">
+                                                    <button 
+                                                        class="grading-btn bg-indigo-600/10 hover:bg-indigo-600/25 text-indigo-400 font-bold py-1.5 px-3 rounded-lg border border-indigo-500/20 transition cursor-pointer text-[11px]"
+                                                        data-id="{{ $sub->id }}"
+                                                        data-student="{{ $sub->user->name }}"
+                                                        data-task-title="{{ $sub->task->title }}"
+                                                        data-max-points="{{ $sub->task->points }}"
+                                                        data-score="{{ $sub->score }}"
+                                                        data-feedback="{{ $sub->feedback }}"
+                                                        data-is-test="{{ $sub->task->is_test ? 1 : 0 }}"
+                                                        data-questions="{{ json_encode($sub->task->questions) }}"
+                                                        data-answers="{{ json_encode($sub->answers) }}"
+                                                        data-file="{{ $sub->uploaded_file ? asset($sub->uploaded_file) : '' }}"
+                                                        onclick="handleGradingButtonClick(this)">
+                                                        {{ is_null($sub->score) ? 'Grade Submission' : 'Re-Evaluate' }}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                </div>
+
+                <!-- TAB CONTENT: SCHEDULE & START CLASSES -->
+                <div id="tab-content-schedule-classes" class="tab-pane hidden space-y-6">
+                    <!-- Top: Schedule Class Form (Full Width) -->
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-pink-500/10 text-pink-400 flex items-center justify-center text-xs">🎥</span>
+                            Schedule Virtual Class
+                        </h2>
+                        <form action="{{ route('teacher.classes.create') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Class Topic / Title</label>
+                                <input type="text" name="title" required placeholder="e.g. Chapter 4: Respiration" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
+                                <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
+                                <input type="number" name="duration_minutes" required value="60" min="15" max="180" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Platform</label>
+                                <select name="platform" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-400 outline-none focus:border-pink-500 transition cursor-pointer">
+                                    <option value="In-App Classroom">In-App Virtual Room</option>
+                                    <option value="Zoom">Zoom Meeting</option>
+                                    <option value="Google Meet">Google Meet</option>
+                                    <option value="Microsoft Teams">Microsoft Teams</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 font-semibold mb-1">Meeting Link (Optional)</label>
+                                <input type="url" name="meeting_link" placeholder="https://zoom.us/j/..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-pink-500 transition">
+                            </div>
+                            <button type="submit" class="w-full bg-pink-600 hover:bg-pink-500 text-white font-semibold text-xs rounded-xl py-3 shadow-lg shadow-pink-600/20 active:scale-[0.98] transition cursor-pointer">
+                                Schedule Class Session
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Bottom: Live Class Schedule (Full Width) -->
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h2 class="text-base font-bold text-white mb-4">Live Class Schedule</h2>
+                        
+                        @php
+                            $courseScheduledClasses = $course->scheduledClasses->filter(function ($class) {
+                                $endTime = $class->scheduled_at->copy()->addMinutes($class->duration_minutes);
+                                return now()->lessThanOrEqualTo($endTime);
+                            });
+                        @endphp
+
+                        @if($courseScheduledClasses->count() === 0)
+                            <div class="text-center py-16 text-slate-500 text-sm italic">
+                                No classes scheduled yet. Create one using the scheduling form above.
+                            </div>
+                        @else
+                            <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2">
+                                @foreach($courseScheduledClasses as $class)
+                                    <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/80 bg-slate-900/20' }} rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-[9px] uppercase font-extrabold px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                                    {{ $class->course->code }}
+                                                </span>
+                                                <span class="text-xs text-slate-400">Duration: {{ $class->duration_minutes }} Mins</span>
+                                                @if($class->is_active)
+                                                    <span class="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
+                                                        <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <h3 class="text-sm font-bold text-white">{{ $class->title }}</h3>
+                                            <p class="text-[10px] text-slate-500">
+                                                Scheduled: {{ $class->scheduled_at->format('M d, Y - H:i') }} ({{ $class->scheduled_at->diffForHumans() }})
+                                            </p>
+                                            <p class="text-[10px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></p>
+                                            <div class="flex items-center gap-2">
+                                                <!-- Start / End Toggle Button -->
+                                                <form action="{{ route('teacher.classes.toggle-active', $class->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="text-xs px-3.5 py-2 font-bold rounded-lg transition border cursor-pointer {{ $class->is_active ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700/60' : 'bg-pink-600 hover:bg-pink-500 text-white border-pink-500/20 shadow-md shadow-pink-600/10' }}">
+                                                        {{ $class->is_active ? '⏹ End Session' : '▶ Start Class' }}
+                                                    </button>
+                                                </form>
+
+                                                <!-- Enter Classroom Simulation -->
+                                                @if($class->platform === 'In-App Classroom')
+                                                    <a href="{{ route('classroom', $class->id) }}" class="text-xs bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-3.5 rounded-lg border border-purple-500/20 transition cursor-pointer shadow-md shadow-purple-655/10">
+                                                        💻 Launch Classroom
+                                                    </a>
+                                                @elseif($class->meeting_link)
+                                                    <a href="{{ $class->meeting_link }}" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 px-3.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
+                                                        🔗 External Link
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
         </main>
+
+        @if(Auth::user()->isTeacher())
+        <!-- Evaluation / Grading Modal -->
+        <div id="grading-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md hidden items-center justify-center p-4 overflow-y-auto">
+            <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-800 p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+                <button onclick="closeGradingModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg cursor-pointer z-10">&times;</button>
+                
+                <div class="pb-3 border-b border-slate-850 flex-shrink-0">
+                    <h3 class="text-base font-bold text-white mb-0.5">Evaluate Assignment Submission</h3>
+                    <p class="text-xs text-slate-400">Review student response from <strong id="grading-student" class="text-white"></strong></p>
+                </div>
+                
+                <div class="bg-slate-950/40 border border-slate-800/80 rounded-xl p-3 my-4 flex justify-between items-center flex-shrink-0">
+                    <div>
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Task Title</span>
+                        <span class="text-xs font-semibold text-slate-300" id="grading-task-title"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Max Marks</span>
+                        <span class="text-xs font-bold text-slate-300" id="grading-max-points">0</span>
+                    </div>
+                </div>
+
+                <form id="grading-form" method="POST" class="space-y-4 overflow-y-auto flex-grow pr-2">
+                    @csrf
+                    
+                    <!-- CASE A: Standard Single Grade Block -->
+                    <div id="grading-standard-block" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 font-semibold mb-1">Assign Score</label>
+                            <div class="flex items-center gap-3">
+                                <input type="number" id="grading-score" name="score" min="0" class="w-24 bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition text-center font-bold text-base">
+                                <span class="text-slate-400 font-bold">/ <span id="grading-max-points-label" class="text-white">10</span> Points</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CASE B: Google Form Question-by-Question Grading Block -->
+                    <div id="grading-test-questions-block" class="hidden space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-purple-400">Question Grading Console</h4>
+                        
+                        <!-- Question Answers and Grading Inputs List -->
+                        <div id="grading-questions-list" class="space-y-4 divide-y divide-slate-850">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                        
+                        <!-- Calculated Total Grade Display -->
+                        <div class="bg-purple-950/20 border border-purple-900/40 rounded-xl p-4 flex items-center justify-between">
+                            <span class="text-xs font-bold text-purple-300">Summed Total Grade:</span>
+                            <span class="text-base font-extrabold text-white"><span id="grading-calculated-total">0</span> / <span id="grading-test-max-marks">0</span> pts</span>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Khata Preview Block -->
+                    <div id="grading-khata-block" class="hidden border-t border-slate-800/80 pt-4 space-y-2">
+                        <span class="text-xs font-bold text-slate-400 block">Uploaded Khata (Answer Sheet)</span>
+                        <div class="border border-slate-800 rounded-xl bg-slate-900/40 p-2 text-center overflow-hidden">
+                            <a id="grading-khata-link" href="#" target="_blank" title="Click to view full size">
+                                <img id="grading-khata-img" src="" alt="Khata answer sheet" class="max-h-72 mx-auto rounded-lg border border-slate-800 hover:scale-[1.01] transition-transform duration-300 cursor-zoom-in">
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Feedback block -->
+                    <div class="border-t border-slate-800/80 pt-4">
+                        <label class="block text-xs text-slate-400 font-semibold mb-1">Teacher Feedback / Remarks</label>
+                        <textarea id="grading-feedback" name="feedback" rows="3" placeholder="Add guidance, positive remarks, or corrections..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-sm text-slate-200 outline-none focus:border-purple-500 transition"></textarea>
+                    </div>
+
+                    <!-- Submit footer -->
+                    <div class="border-t border-slate-850 pt-4 flex justify-end gap-3 flex-shrink-0">
+                        <button type="button" onclick="closeGradingModal()" class="bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-semibold py-2 px-5 rounded-xl transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-purple-650/20 active:scale-[0.98]">
+                            Submit Grades
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @endif
 
         <!-- Footer -->
         <footer class="border-t border-slate-800/80 bg-slate-900/10 py-6 mt-12">
@@ -723,51 +1300,8 @@
 
         <!-- Javascript Utilities -->
         <script>
-            // 1. Theme Configuration
-            const themeToggle = document.getElementById('theme-toggle');
-            
-            const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.978 4.978l1.591 1.591m10.862 10.862l1.591 1.591M21 12h-2.25m-13.5 0H3m14.022-7.022l-1.591 1.591M6.569 17.43l-1.591 1.591M12 7.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z" /></svg>`;
-            const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>`;
+            // 1. Theme Configuration (Removed)
 
-            function getCookie(name) {
-                const value = `; ${document.cookie}`;
-                const parts = value.split(`; ${name}=`);
-                if (parts.length === 2) return parts.pop().split(';').shift();
-                return null;
-            }
-
-            function setCookie(name, value, days) {
-                let expires = "";
-                if (days) {
-                    const date = new Date();
-                    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                    expires = "; expires=" + date.toUTCString();
-                }
-                document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`;
-            }
-
-            function updateThemeToggleIcon(theme) {
-                if (theme === 'theme-space-dark') {
-                    themeToggle.innerHTML = sunIcon;
-                } else {
-                    themeToggle.innerHTML = moonIcon;
-                }
-            }
-
-            // Apply theme on page load
-            const currentTheme = getCookie('dashboard_theme') || 'theme-space-dark';
-            document.body.className = currentTheme;
-            updateThemeToggleIcon(currentTheme);
-
-            themeToggle.addEventListener('click', function () {
-                const newTheme = document.body.classList.contains('theme-space-dark') 
-                    ? 'theme-space-light' 
-                    : 'theme-space-dark';
-                
-                document.body.className = newTheme;
-                setCookie('dashboard_theme', newTheme, 30);
-                updateThemeToggleIcon(newTheme);
-            });
 
             // 2. Tab Switching Logic
             function switchTab(tabId) {
@@ -797,6 +1331,8 @@
                 }
             });
 
+
+
             // Auto-hide session status notifications after 5 seconds
             setTimeout(() => {
                 const successToast = document.getElementById('toast-success');
@@ -808,6 +1344,88 @@
                     if (errorToast) errorToast.remove();
                 }, 300);
             }, 5000);
+
+            // Lecture Comment Reply Helper Functions
+            function setLectureReplyParent(lectureId, parentId, userName) {
+                const parentInput = document.getElementById(`lecture-parent-input-${lectureId}`);
+                const replyIndicator = document.getElementById(`lecture-reply-indicator-${lectureId}`);
+                const replyUserLabel = document.getElementById(`lecture-reply-user-${lectureId}`);
+                
+                if (parentInput) parentInput.value = parentId;
+                if (replyUserLabel) replyUserLabel.textContent = userName;
+                if (replyIndicator) replyIndicator.classList.remove('hidden');
+                
+                // Focus input
+                if (parentInput && parentInput.form) {
+                    const textInput = parentInput.form.querySelector('input[name="comment_text"]');
+                    if (textInput) {
+                        textInput.focus();
+                        textInput.placeholder = `Reply to ${userName}...`;
+                    }
+                }
+            }
+
+            function cancelLectureReply(lectureId) {
+                const parentInput = document.getElementById(`lecture-parent-input-${lectureId}`);
+                const replyIndicator = document.getElementById(`lecture-reply-indicator-${lectureId}`);
+                
+                if (parentInput) parentInput.value = '';
+                if (replyIndicator) replyIndicator.classList.add('hidden');
+                
+                if (parentInput && parentInput.form) {
+                    const textInput = parentInput.form.querySelector('input[name="comment_text"]');
+                    if (textInput) {
+                        textInput.placeholder = "Write a comment or click Reply...";
+                    }
+                }
+            }
+
+            function toggleCommentsSection(lectureId) {
+                const section = document.getElementById(`comments-section-${lectureId}`);
+                if (section) {
+                    section.classList.toggle('hidden');
+                }
+            }
+
+            function toggleLikeAjax(lectureId, url) {
+                const btn = document.querySelector(`.like-btn-${lectureId}`);
+                if (!btn) return;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                    || document.querySelector('input[name="_token"]')?.value;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const textSpan = btn.querySelector('.like-text');
+                        const countSpan = btn.querySelector('.like-count');
+                        
+                        if (data.liked) {
+                            btn.classList.add('liked-active');
+                            textSpan.textContent = 'Liked';
+                        } else {
+                            btn.classList.remove('liked-active');
+                            textSpan.textContent = 'Like';
+                        }
+                        
+                        countSpan.textContent = data.count;
+                        if (data.count > 0) {
+                            countSpan.classList.remove('hidden');
+                        } else {
+                            countSpan.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+            }
+
         </script>
     </body>
 </html>
