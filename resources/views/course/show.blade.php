@@ -1071,22 +1071,78 @@
             @if(Auth::user()->isTeacher())
                 <!-- TAB CONTENT: PREPARE QUESTION -->
                 <div id="tab-content-prepare-question" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
+
+                    {{-- Published Tests List --}}
+                    @if($course->tasks->where('is_test', true)->count() > 0)
+                    <div class="glass-panel rounded-2xl p-5 border border-slate-800/80 shadow-lg">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-base">📋</span>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Published Tests</h3>
+                                <p class="text-[11px] text-slate-400">Select a test to edit and republish. MCQ scores are auto-updated on answer changes.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-2" id="published-tests-list">
+                        @foreach($course->tasks->where('is_test', true)->sortByDesc('created_at') as $pt)
+                            <div class="flex items-center justify-between bg-slate-900/60 rounded-xl px-4 py-3 border border-slate-800 hover:border-indigo-500/40 transition group">
+                                <div class="flex-1 min-w-0 pr-4">
+                                    <p class="text-sm font-semibold text-white truncate">{{ $pt->title }}</p>
+                                    <div class="flex flex-wrap gap-3 mt-0.5">
+                                        <span class="text-[10px] text-slate-300">Created: {{ $pt->created_at->format('d M Y') }}</span>
+                                        <span class="text-[10px] text-slate-300">Due: {{ $pt->due_date ? $pt->due_date->format('d M Y') : '—' }}</span>
+                                        @if($pt->duration_minutes)
+                                        <span class="text-[10px] text-slate-300">⏱ {{ $pt->duration_minutes }} min</span>
+                                        @endif
+                                        <span class="text-[10px] text-indigo-300 font-bold">{{ $pt->points }} marks · {{ $pt->questions->count() }} Qs</span>
+                                    </div>
+                                </div>
+                                <button type="button"
+                                    onclick="loadTaskForEdit({{ json_encode([
+                                        'id' => $pt->id,
+                                        'title' => $pt->title,
+                                        'description' => $pt->description,
+                                        'due_date' => $pt->due_date ? $pt->due_date->format('Y-m-d') : '',
+                                        'duration_minutes' => $pt->duration_minutes,
+                                        'mcq_negative_marking' => (bool)$pt->mcq_negative_marking,
+                                        'mcq_negative_marking_value' => $pt->mcq_negative_marking_value,
+                                        'questions' => $pt->questions->map(fn($q) => [
+                                            'id' => $q->id,
+                                            'text' => $q->question_text,
+                                            'type' => $q->type,
+                                            'points' => $q->points,
+                                            'options' => $q->options ?? [],
+                                            'correct_answer' => $q->correct_answer,
+                                        ])->values()
+                                    ]) }})"
+                                    class="flex-shrink-0 text-[11px] font-bold px-4 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 border border-indigo-600/30 hover:bg-indigo-600/40 hover:text-white transition cursor-pointer">
+                                    ✏️ Edit
+                                </button>
+                            </div>
+                        @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
                         <div class="pb-4 border-b border-slate-800 flex justify-between items-center mb-6">
                             <div>
-                                <h3 class="text-lg font-bold text-white">EduTrack Question Maker</h3>
-                                <p class="text-xs text-slate-400 mt-0.5">Design exam papers with dynamic question distribution</p>
+                                <h3 class="text-lg font-bold text-white" id="question-maker-heading">EduTrack Question Maker</h3>
+                                <p class="text-xs text-slate-400 mt-0.5" id="question-maker-subtitle">Design exam papers with dynamic question distribution</p>
                             </div>
-                            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2 text-right">
-                                <span class="text-[9px] uppercase font-bold text-indigo-400 block">Total Marks</span>
-                                <span class="text-base font-extrabold text-white" id="builder-total-marks">0</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="reset-to-create-btn" onclick="resetToCreateMode()" class="hidden text-[11px] font-bold px-3 py-1.5 rounded-lg bg-slate-700/60 text-slate-300 border border-slate-600 hover:bg-slate-600 transition cursor-pointer">+ New Test</button>
+                                <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl px-4 py-2 text-right">
+                                    <span class="text-[9px] uppercase font-bold text-indigo-400 block">Total Marks</span>
+                                    <span class="text-base font-extrabold text-white" id="builder-total-marks">0</span>
+                                </div>
                             </div>
                         </div>
 
-                        <form action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-5">
+                        <form id="question-maker-form" action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-5">
                             @csrf
                             <input type="hidden" name="is_test" value="1">
                             <input type="hidden" name="course_id" value="{{ $course->id }}">
+                            <input type="hidden" name="_task_id" id="edit-task-id" value="">
 
                             <!-- Test Meta Details -->
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -1111,29 +1167,56 @@
                                 </div>
                             </div>
 
+                            <!-- MCQ Negative Marking Config -->
+                            <div class="bg-slate-950/40 border border-slate-850 rounded-2xl p-4 space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">MCQ Negative Marking</h4>
+                                        <p class="text-[10px] text-slate-500 mt-0.5">Deduct marks automatically for wrong MCQ answers</p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="neg-marking-toggle" name="mcq_negative_marking" value="1" onchange="toggleNegativeMarkingFields(this)" class="sr-only peer">
+                                        <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-350 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                                    </label>
+                                </div>
+
+                                <div id="negative-marking-details" class="hidden border-t border-slate-900 pt-3">
+                                    <input type="hidden" name="mcq_negative_marking_mode" value="per_wrong">
+                                    <input type="hidden" name="mcq_negative_marking_threshold_count" value="1">
+                                    <div>
+                                        <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Deduction Per Wrong Answer (Marks)</label>
+                                        <input type="number" name="mcq_negative_marking_value" step="0.25" value="0.25" min="0" class="w-40 bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition text-center font-bold">
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Dynamic Questions Container -->
                             <div class="border-t border-slate-800/80 pt-4 space-y-4">
-                                <div class="flex items-center justify-between">
-                                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions List</h4>
-                                    <button type="button" onclick="addQuestion()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-1.5 px-3.5 rounded-lg transition cursor-pointer flex items-center gap-1 shadow-md shadow-indigo-600/10">
-                                        + Add Question
-                                    </button>
-                                </div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Questions List</h4>
 
                                 <!-- Question card elements go here -->
                                 <div id="test-questions-list" class="space-y-4">
                                     <!-- JS templates insert here -->
                                 </div>
+
+                                <!-- Add Question button below the list -->
+                                <button type="button" onclick="addQuestion()" class="w-full border border-dashed border-indigo-500/40 hover:border-indigo-500/80 bg-indigo-600/5 hover:bg-indigo-600/10 text-indigo-400 hover:text-indigo-300 text-xs font-bold py-3 rounded-xl transition cursor-pointer flex items-center justify-center gap-2">
+                                    <span class="text-base leading-none">+</span> Add Question
+                                </button>
                             </div>
 
                             <!-- Submit Footer -->
-                            <div class="border-t border-slate-800 pt-4 flex justify-end gap-3 flex-shrink-0">
-                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3.5 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-indigo-650/20 active:scale-[0.98]">
-                                    Save & Publish Test
+                            <div class="border-t border-slate-800 pt-4 flex gap-3 flex-shrink-0">
+                                <button type="button" id="form-back-btn" onclick="resetToCreateMode()" class="hidden flex-shrink-0 bg-slate-700/60 hover:bg-slate-700 border border-slate-600 text-slate-300 hover:text-white text-xs font-bold py-3.5 px-5 rounded-xl transition cursor-pointer flex items-center gap-2">
+                                    ← Back
+                                </button>
+                                <button type="submit" id="question-maker-submit-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-3.5 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-indigo-650/20 active:scale-[0.98]">
+                                    Save &amp; Publish Test
                                 </button>
                             </div>
                         </form>
                     </div>
+                </div>
                 </div>
 
                 <!-- TAB CONTENT: EVALUATE SUBMISSIONS -->
@@ -1201,6 +1284,7 @@
                                                         data-score="{{ $sub->score }}"
                                                         data-feedback="{{ $sub->feedback }}"
                                                         data-is-test="{{ $sub->task->is_test ? 1 : 0 }}"
+                                                        data-neg-marking="{{ $sub->task->mcq_negative_marking ? 1 : 0 }}"
                                                         data-questions="{{ json_encode($sub->task->questions) }}"
                                                         data-answers="{{ json_encode($sub->answers) }}"
                                                         data-file="{{ $sub->uploaded_file ? asset($sub->uploaded_file) : '' }}"
@@ -1399,9 +1483,31 @@
                     
                     const questionGrades = answers.question_grades || {};
                     
+                    // Show MCQ details summary if MCQ questions exist
+                    const mcqDetails = answers.mcq_details || { correct: 0, wrong: 0, deduction: 0 };
+                    if (questions.some(q => q.type === 'mcq')) {
+                        const summaryDiv = document.createElement('div');
+                        summaryDiv.className = "bg-indigo-950/20 border border-indigo-900/40 rounded-xl p-3 mb-4 grid grid-cols-3 gap-3 text-center";
+                        summaryDiv.innerHTML = `
+                            <div>
+                                <span class="text-[9px] uppercase font-bold text-slate-500 block">MCQ Correct</span>
+                                <span class="text-xs font-extrabold text-emerald-400">${mcqDetails.correct}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] uppercase font-bold text-slate-500 block">MCQ Wrong</span>
+                                <span class="text-xs font-extrabold text-rose-400">${mcqDetails.wrong}</span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] uppercase font-bold text-slate-500 block">Deduction</span>
+                                <span class="text-xs font-extrabold text-amber-500">${parseFloat(mcqDetails.deduction).toFixed(2)} pts</span>
+                            </div>
+                        `;
+                        qListContainer.appendChild(summaryDiv);
+                    }
+
                     questions.forEach((q, idx) => {
                         const questionId = q.id;
-                        const studentAnswer = answers[questionId] || 'No Answer.';
+                        const studentAnswer = answers[questionId] || '';
                         const scoreVal = questionGrades[questionId] !== undefined ? questionGrades[questionId] : '';
                         
                         const qRow = document.createElement('div');
@@ -1409,15 +1515,31 @@
                         
                         let answerSnippet = '';
                         if (q.type === 'mcq') {
+                            const isCorrect = studentAnswer.toLowerCase().trim() === (q.correct_answer || '').toLowerCase().trim();
                             answerSnippet = `
-                                <div class="text-[10px] text-slate-400 bg-slate-900/50 rounded px-2.5 py-1 inline-block border border-slate-800">
-                                    Student Answer: <strong class="text-indigo-400">${studentAnswer}</strong>
+                                <div class="flex flex-col gap-1.5 mt-1 bg-slate-900/40 border border-slate-850 p-2.5 rounded-xl">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] text-slate-500">Student Response:</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded font-bold ${isCorrect ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}">
+                                            ${studentAnswer || 'No Answer'}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-[10px] text-slate-500">Correct Option Key:</span>
+                                        <select name="correct_answers[${questionId}]" onchange="handleCorrectAnswerChange(this, '${studentAnswer.replace(/'/g, "\\'")}', ${q.points}, ${questionId})" class="bg-slate-950 border border-slate-800 rounded-lg py-1 px-2.5 text-[10px] text-slate-300 outline-none focus:border-indigo-500 transition cursor-pointer">
+                                            ${(q.options || []).map(opt => `
+                                                <option value="${opt}" ${opt === q.correct_answer ? 'selected' : ''}>
+                                                    ${opt}
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
                                 </div>
                             `;
                         } else if (q.type === 'written') {
                             answerSnippet = `
-                                <div class="bg-slate-950/30 border border-slate-900 p-2.5 rounded-xl text-[11px] text-slate-300 leading-relaxed font-mono">
-                                    ${studentAnswer}
+                                <div class="bg-slate-955/30 border border-slate-900 p-2.5 rounded-xl text-[11px] text-slate-300 leading-relaxed font-mono">
+                                    ${studentAnswer || 'No Answer.'}
                                 </div>
                             `;
                         } else if (q.type === 'file') {
@@ -1435,7 +1557,7 @@
                                     <div class="text-xs font-bold text-slate-200 mt-0.5">${q.question_text}</div>
                                 </div>
                                 <div class="flex items-center gap-1.5 flex-shrink-0">
-                                    <input type="number" name="question_scores[${questionId}]" value="${scoreVal}" required min="0" max="${q.points}" oninput="calculateGradingTotal()" class="question-grade-input w-16 bg-slate-900/60 border border-slate-800 rounded-xl py-1 px-2 text-xs font-bold text-slate-200 text-center outline-none focus:border-purple-500 transition">
+                                    <input type="number" name="question_scores[${questionId}]" value="${scoreVal}" required min="0" max="${q.points}" oninput="calculateGradingTotal()" class="question-grade-input w-16 bg-slate-900/60 border border-slate-800 rounded-xl py-1 px-2 text-xs font-bold text-slate-200 text-center outline-none focus:border-purple-500 transition" ${q.type === 'mcq' ? 'readonly tabindex="-1"' : ''}>
                                     <span class="text-[10px] text-slate-500">/ ${q.points}</span>
                                 </div>
                             </div>
@@ -1466,9 +1588,33 @@
             function calculateGradingTotal() {
                 let total = 0;
                 document.querySelectorAll('.question-grade-input').forEach(input => {
-                    total += parseInt(input.value || 0);
+                    total += parseFloat(input.value || 0);
                 });
                 document.getElementById('grading-calculated-total').textContent = total;
+            }
+
+            function handleCorrectAnswerChange(select, studentAnswer, maxPoints, qId) {
+                const scoreInput = document.querySelector(`input[name="question_scores[${qId}]"]`);
+                if (scoreInput) {
+                    if (select.value.toLowerCase().trim() === studentAnswer.toLowerCase().trim()) {
+                        scoreInput.value = maxPoints;
+                    } else {
+                        scoreInput.value = 0;
+                    }
+                }
+                
+                // Update badge style dynamically
+                const badge = select.closest('.flex-col').querySelector('.rounded');
+                if (badge) {
+                    const isCorrect = select.value.toLowerCase().trim() === studentAnswer.toLowerCase().trim();
+                    if (isCorrect) {
+                        badge.className = 'text-[10px] px-2 py-0.5 rounded font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    } else {
+                        badge.className = 'text-[10px] px-2 py-0.5 rounded font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                    }
+                }
+                
+                calculateGradingTotal();
             }
 
             function closeGradingModal() {
@@ -1604,14 +1750,16 @@
 
                     <!-- MCQ Options block (Hidden by default) -->
                     <div id="options-block-${index}" class="hidden pl-4 border-l-2 border-indigo-500/20 space-y-2">
-                        <label class="block text-[10px] text-slate-500 font-bold uppercase">MCQ Choice Options</label>
+                        <label class="block text-[10px] text-slate-500 font-bold uppercase">MCQ Choice Options (Check the correct option)</label>
                         <div id="options-container-${index}" class="space-y-2">
                             <div class="flex items-center gap-2 option-row">
+                                <input type="radio" name="questions[${index}][correct_option_index]" value="0" checked class="w-3.5 h-3.5 text-indigo-600 bg-slate-900 border-slate-800 focus:ring-indigo-500 cursor-pointer">
                                 <span class="text-xs text-slate-500 font-mono">1.</span>
                                 <input type="text" name="questions[${index}][options][]" value="Option A" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
                                 <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
                             </div>
                             <div class="flex items-center gap-2 option-row">
+                                <input type="radio" name="questions[${index}][correct_option_index]" value="1" class="w-3.5 h-3.5 text-indigo-600 bg-slate-900 border-slate-800 focus:ring-indigo-500 cursor-pointer">
                                 <span class="text-xs text-slate-500 font-mono">2.</span>
                                 <input type="text" name="questions[${index}][options][]" value="Option B" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
                                 <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
@@ -1650,6 +1798,7 @@
                 const row = document.createElement('div');
                 row.className = 'flex items-center gap-2 option-row';
                 row.innerHTML = `
+                    <input type="radio" name="questions[${qIndex}][correct_option_index]" value="${rowsCount}" class="w-3.5 h-3.5 text-indigo-600 bg-slate-900 border-slate-800 focus:ring-indigo-500 cursor-pointer">
                     <span class="text-xs text-slate-500 font-mono">${rowsCount + 1}.</span>
                     <input type="text" name="questions[${qIndex}][options][]" required placeholder="Option Choice" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
                     <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
@@ -1664,6 +1813,7 @@
                     row.remove();
                     Array.from(container.children).forEach((child, idx) => {
                         child.querySelector('span').textContent = `${idx + 1}.`;
+                        child.querySelector('input[type="radio"]').value = idx;
                     });
                 }
             }
@@ -1675,6 +1825,161 @@
                 });
                 const totalMarksEl = document.getElementById('builder-total-marks');
                 if (totalMarksEl) totalMarksEl.textContent = sum;
+            }
+
+            function toggleNegativeMarkingFields(checkbox) {
+                const details = document.getElementById('negative-marking-details');
+                if (checkbox.checked) {
+                    details.classList.remove('hidden');
+                } else {
+                    details.classList.add('hidden');
+                }
+            }
+
+            /**
+             * Load an existing task into the Question Maker for editing.
+             */
+            function loadTaskForEdit(task) {
+                const form = document.getElementById('question-maker-form');
+                const taskIdInput = document.getElementById('edit-task-id');
+                const heading = document.getElementById('question-maker-heading');
+                const subtitle = document.getElementById('question-maker-subtitle');
+                const submitBtn = document.getElementById('question-maker-submit-btn');
+                const resetBtn = document.getElementById('reset-to-create-btn');
+                const backBtn = document.getElementById('form-back-btn');
+                const questionList = document.getElementById('test-questions-list');
+                const negMarkingToggle = document.getElementById('neg-marking-toggle');
+
+                // Update form action to the update route
+                form.action = `/teacher/tasks/${task.id}/update`;
+                taskIdInput.value = task.id;
+
+                // Update heading
+                heading.textContent = 'Edit Test';
+                subtitle.textContent = `Editing: ${task.title}`;
+
+                // Update submit button
+                submitBtn.textContent = '🔄 Save & Republish';
+                submitBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-500');
+                submitBtn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+
+                // Show reset button and back button
+                resetBtn.classList.remove('hidden');
+                if (backBtn) backBtn.classList.remove('hidden');
+
+                // Fill in meta fields
+                form.querySelector('[name="title"]').value = task.title || '';
+                form.querySelector('[name="description"]').value = task.description || '';
+                form.querySelector('[name="due_date"]').value = task.due_date || '';
+                const durationField = form.querySelector('[name="duration_minutes"]');
+                if (durationField) durationField.value = task.duration_minutes || 60;
+
+                // Negative marking
+                if (negMarkingToggle) {
+                    negMarkingToggle.checked = task.mcq_negative_marking;
+                    toggleNegativeMarkingFields(negMarkingToggle);
+                }
+                const negValueField = form.querySelector('[name="mcq_negative_marking_value"]');
+                if (negValueField) negValueField.value = task.mcq_negative_marking_value || 0.25;
+
+                // Clear existing questions
+                questionList.innerHTML = '';
+                questionCount = 0;
+
+                // Re-build questions from task data
+                (task.questions || []).forEach((q) => {
+                    const index = questionCount++;
+                    const qBlock = document.createElement('div');
+                    qBlock.id = `q-block-${index}`;
+                    qBlock.className = 'bg-slate-955/60 border border-slate-800/80 rounded-xl p-4 space-y-4 relative shadow-md';
+
+                    const isMcq = q.type === 'mcq';
+                    const optionsHtml = isMcq ? (q.options || []).map((opt, oIdx) => `
+                        <div class="flex items-center gap-2 option-row">
+                            <input type="radio" name="questions[${index}][correct_option_index]" value="${oIdx}" ${q.correct_answer === opt ? 'checked' : ''} class="w-3.5 h-3.5 text-indigo-600 bg-slate-900 border-slate-800 focus:ring-indigo-500 cursor-pointer">
+                            <span class="text-xs text-slate-500 font-mono">${oIdx + 1}.</span>
+                            <input type="text" name="questions[${index}][options][]" value="${opt}" class="bg-slate-900/60 border border-slate-850 rounded-xl py-1 px-3 text-xs text-slate-300 outline-none focus:border-indigo-500 transition flex-grow">
+                            <button type="button" onclick="removeOption(this)" class="text-slate-500 hover:text-red-400 font-bold text-xs cursor-pointer">&times;</button>
+                        </div>
+                    `).join('') : '';
+
+                    qBlock.innerHTML = `
+                        <input type="hidden" name="questions[${index}][existing_id]" value="${q.id || ''}">
+                        <button type="button" onclick="removeQuestion(${index})" class="absolute top-4 right-4 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer">🗑️ Delete</button>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                            <div class="md:col-span-7">
+                                <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question ${index + 1} Text</label>
+                                <input type="text" name="questions[${index}][text]" required value="${(q.text || '').replace(/"/g, '&quot;')}" placeholder="e.g. Write a brief history of Turing Machines." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition">
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Question Type</label>
+                                <select name="questions[${index}][type]" onchange="handleTypeChange(this, ${index})" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-indigo-500 transition cursor-pointer">
+                                    <option value="written" ${q.type === 'written' ? 'selected' : ''}>Written Text Response</option>
+                                    <option value="mcq" ${q.type === 'mcq' ? 'selected' : ''}>Multiple Choice (MCQ)</option>
+                                    <option value="file" ${q.type === 'file' ? 'selected' : ''}>File Upload (Notebook / Khata)</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-[10px] text-slate-500 font-bold uppercase mb-1">Marks</label>
+                                <input type="number" name="questions[${index}][points]" required value="${q.points || 5}" min="1" oninput="updateTotalPoints()" class="points-input w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 outline-none focus:border-indigo-500 transition text-center font-bold">
+                            </div>
+                        </div>
+                        <!-- MCQ Options block -->
+                        <div id="options-block-${index}" class="${isMcq ? '' : 'hidden'} pl-4 border-l-2 border-indigo-500/20 space-y-2">
+                            <label class="block text-[10px] text-slate-500 font-bold uppercase">MCQ Choice Options (Check the correct option)</label>
+                            <div id="options-container-${index}" class="space-y-2">${optionsHtml}</div>
+                            <button type="button" onclick="addOption(${index})" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer">+ Add Choice Option</button>
+                        </div>
+                    `;
+
+                    questionList.appendChild(qBlock);
+                });
+
+                updateTotalPoints();
+
+                // Scroll to the Question Maker
+                form.closest('.glass-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            /**
+             * Reset the Question Maker back to "create new test" mode.
+             */
+            function resetToCreateMode() {
+                const form = document.getElementById('question-maker-form');
+                const taskIdInput = document.getElementById('edit-task-id');
+                const heading = document.getElementById('question-maker-heading');
+                const subtitle = document.getElementById('question-maker-subtitle');
+                const submitBtn = document.getElementById('question-maker-submit-btn');
+                const resetBtn = document.getElementById('reset-to-create-btn');
+                const backBtn = document.getElementById('form-back-btn');
+                const questionList = document.getElementById('test-questions-list');
+                const negMarkingToggle = document.getElementById('neg-marking-toggle');
+
+                form.action = '{{ route("teacher.tasks.create") }}';
+                taskIdInput.value = '';
+                heading.textContent = 'EduTrack Question Maker';
+                subtitle.textContent = 'Design exam papers with dynamic question distribution';
+                submitBtn.textContent = 'Save & Publish Test';
+                submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-500');
+                submitBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
+                resetBtn.classList.add('hidden');
+                if (backBtn) backBtn.classList.add('hidden');
+
+                // Clear form fields
+                form.querySelector('[name="title"]').value = '';
+                form.querySelector('[name="description"]').value = '';
+                form.querySelector('[name="due_date"]').value = '';
+                const durationField = form.querySelector('[name="duration_minutes"]');
+                if (durationField) durationField.value = 60;
+
+                if (negMarkingToggle) {
+                    negMarkingToggle.checked = false;
+                    toggleNegativeMarkingFields(negMarkingToggle);
+                }
+
+                questionList.innerHTML = '';
+                questionCount = 0;
+                updateTotalPoints();
             }
         </script>
     </body>
