@@ -114,6 +114,10 @@ class TeacherDashboardController extends Controller
             'due_date' => 'required|date',
             'is_test' => 'nullable|boolean',
             'duration_minutes' => 'required_if:is_test,1|integer|min:5|max:480',
+            'mcq_negative_marking' => 'nullable|boolean',
+            'mcq_negative_marking_mode' => 'nullable|string|in:per_wrong,threshold',
+            'mcq_negative_marking_value' => 'nullable|numeric|min:0',
+            'mcq_negative_marking_threshold_count' => 'nullable|integer|min:1',
         ]);
 
         // Verify the teacher owns the course or claim it
@@ -142,14 +146,26 @@ class TeacherDashboardController extends Controller
             'points' => $totalPoints,
             'is_test' => $isTest,
             'duration_minutes' => $isTest ? $request->duration_minutes : 60,
+            'mcq_negative_marking' => $request->boolean('mcq_negative_marking'),
+            'mcq_negative_marking_mode' => $request->input('mcq_negative_marking_mode', 'per_wrong'),
+            'mcq_negative_marking_value' => $request->input('mcq_negative_marking_value', 0.00),
+            'mcq_negative_marking_threshold_count' => $request->input('mcq_negative_marking_threshold_count', 2),
         ]);
 
         if ($isTest && $request->has('questions') && is_array($request->questions)) {
             foreach ($request->questions as $index => $q) {
                 // Ensure options are clean
                 $options = null;
-                if ($q['type'] === 'mcq' && isset($q['options']) && is_array($q['options'])) {
-                    $options = array_values(array_filter($q['options']));
+                $correctAnswer = null;
+                if ($q['type'] === 'mcq') {
+                    if (isset($q['options']) && is_array($q['options'])) {
+                        $options = array_values(array_filter($q['options']));
+                        
+                        // Look up correct answer option text
+                        if (isset($q['correct_option_index']) && isset($options[$q['correct_option_index']])) {
+                            $correctAnswer = $options[$q['correct_option_index']];
+                        }
+                    }
                 }
                 
                 $task->questions()->create([
@@ -157,6 +173,7 @@ class TeacherDashboardController extends Controller
                     'type' => $q['type'],
                     'points' => intval($q['points'] ?? 5),
                     'options' => $options,
+                    'correct_answer' => $correctAnswer,
                 ]);
             }
         }
@@ -167,27 +184,177 @@ class TeacherDashboardController extends Controller
     }
 
     /**
+     * Update an existing task / test and re-evaluate MCQ submissions if answers changed.
+     */
+    public function updateTask(Request $request, Task $task)
+    {
+        // Ensure the teacher owns this task's course
+        $course = $task->course;
+        if ($course->instructor_id !== Auth::id()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'required|date',
+            'duration_minutes' => 'nullable|integer|min:5|max:480',
+            'mcq_negative_marking' => 'nullable|boolean',
+            'mcq_negative_marking_value' => 'nullable|numeric|min:0',
+        ]);
+
+        // Recalculate total points from updated questions
+        $totalPoints = 0;
+        if ($request->has('questions') && is_array($request->questions)) {
+            foreach ($request->questions as $q) {
+                $totalPoints += intval($q['points'] ?? 0);
+            }
+        }
+
+        $task->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'points' => $totalPoints ?: $task->points,
+            'duration_minutes' => $request->input('duration_minutes', $task->duration_minutes),
+            'mcq_negative_marking' => $request->boolean('mcq_negative_marking'),
+            'mcq_negative_marking_mode' => 'per_wrong',
+            'mcq_negative_marking_value' => $request->input('mcq_negative_marking_value', 0.00),
+            'mcq_negative_marking_threshold_count' => 1,
+        ]);
+
+        // Replace questions: delete old ones and recreate
+        $correctAnswerChanged = false;
+        $oldQuestions = $task->questions()->get()->keyBy('id');
+
+        if ($request->has('questions') && is_array($request->questions)) {
+            // Delete all existing questions
+            $task->questions()->delete();
+
+            foreach ($request->questions as $q) {
+                $options = null;
+                $correctAnswer = null;
+
+                if ($q['type'] === 'mcq') {
+                    if (isset($q['options']) && is_array($q['options'])) {
+                        $options = array_values(array_filter($q['options']));
+                        if (isset($q['correct_option_index']) && isset($options[$q['correct_option_index']])) {
+                            $correctAnswer = $options[$q['correct_option_index']];
+                        }
+                    }
+
+                    // Check if this question existed before and if the correct answer changed
+                    if (isset($q['existing_id']) && isset($oldQuestions[$q['existing_id']])) {
+                        $oldQ = $oldQuestions[$q['existing_id']];
+                        if ($oldQ->correct_answer !== $correctAnswer) {
+                            $correctAnswerChanged = true;
+                        }
+                    }
+                }
+
+                $task->questions()->create([
+                    'question_text' => $q['text'],
+                    'type' => $q['type'],
+                    'points' => intval($q['points'] ?? 5),
+                    'options' => $options,
+                    'correct_answer' => $correctAnswer,
+                ]);
+            }
+        }
+
+        // If any MCQ correct answer changed, re-evaluate ALL submissions for this task
+        if ($correctAnswerChanged) {
+            $task->load('questions');
+            $allSubmissions = TaskSubmission::where('task_id', $task->id)->get();
+            foreach ($allSubmissions as $sub) {
+                $result = TaskSubmission::calculateScoreAndDetails($sub);
+                $subAnswers = $sub->answers ?: [];
+                $subAnswers['question_grades'] = $result['question_grades'];
+                $subAnswers['mcq_details'] = $result['mcq_details'];
+                $sub->update([
+                    'score' => $result['total_score'],
+                    'answers' => $subAnswers,
+                ]);
+            }
+        }
+
+        \App\Models\Activity::log('task_update', "Updated test: {$task->title} for {$course->title}");
+
+        return redirect()->back()->with('success', 'Test updated successfully!' . ($correctAnswerChanged ? ' Student MCQ scores have been automatically re-evaluated.' : ''));
+    }
+
+    /**
      * Evaluate a student submission.
      */
     public function evaluateSubmission(Request $request, TaskSubmission $submission)
     {
-        // If it's a test, teacher might submit question-level grades
+        $task = $submission->task;
+
+        // 1. Process any MCQ correct answer changes first
+        $correctAnswerChanged = false;
+        if ($request->has('correct_answers') && is_array($request->correct_answers)) {
+            foreach ($request->correct_answers as $qId => $newCorrectAnswer) {
+                $question = \App\Models\TaskQuestion::findOrFail($qId);
+                if ($question->correct_answer !== $newCorrectAnswer) {
+                    $question->update(['correct_answer' => $newCorrectAnswer]);
+                    $correctAnswerChanged = true;
+                }
+            }
+        }
+
+        // 2. If a correct answer changed, re-evaluate ALL submissions for this task
+        if ($correctAnswerChanged) {
+            $allSubmissions = TaskSubmission::where('task_id', $task->id)->get();
+            foreach ($allSubmissions as $sub) {
+                $subQuestionScores = $sub->answers['question_grades'] ?? [];
+                
+                // If it's the current submission, merge with input request question scores
+                if ($sub->id === $submission->id && $request->has('question_scores')) {
+                    foreach ($request->question_scores as $qid => $sc) {
+                        $subQuestionScores[$qid] = intval($sc);
+                    }
+                }
+                
+                $result = TaskSubmission::calculateScoreAndDetails($sub, $subQuestionScores);
+                
+                $subAnswers = $sub->answers ?: [];
+                $subAnswers['question_grades'] = $result['question_grades'];
+                $subAnswers['mcq_details'] = $result['mcq_details'];
+                
+                $sub->update([
+                    'score' => $result['total_score'],
+                    'answers' => $subAnswers,
+                ]);
+            }
+            
+            // Reload submission
+            $submission->refresh();
+        }
+
+        // 3. Process the standard manual grades input for the current submission
         if ($request->has('question_scores') && is_array($request->question_scores)) {
             $questionScores = $request->question_scores;
-            $totalScore = 0;
-            foreach ($questionScores as $qId => $score) {
-                $totalScore += intval($score);
+            
+            // If correct answer didn't change, we just calculate the total score using the helper
+            if (!$correctAnswerChanged) {
+                $result = TaskSubmission::calculateScoreAndDetails($submission, $questionScores);
+                $answers = $submission->answers ?: [];
+                $answers['question_grades'] = $result['question_grades'];
+                $answers['mcq_details'] = $result['mcq_details'];
+
+                $submission->update([
+                    'score' => $result['total_score'],
+                    'feedback' => $request->feedback,
+                    'answers' => $answers,
+                    'graded_at' => now(),
+                ]);
+            } else {
+                // If it already changed and re-evaluated, save feedback and graded_at
+                $submission->update([
+                    'feedback' => $request->feedback,
+                    'graded_at' => now(),
+                ]);
             }
-
-            $answers = $submission->answers ?: [];
-            $answers['question_grades'] = $questionScores;
-
-            $submission->update([
-                'score' => $totalScore,
-                'feedback' => $request->feedback,
-                'answers' => $answers,
-                'graded_at' => now(),
-            ]);
         } else {
             $request->validate([
                 'score' => 'required|integer|min:0',

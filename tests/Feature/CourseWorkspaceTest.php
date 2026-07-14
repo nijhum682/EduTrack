@@ -462,4 +462,88 @@ class CourseWorkspaceTest extends TestCase
             'parent_id' => $comment->id,
         ]);
     }
+
+    public function test_mcq_auto_grading_and_negative_marking_and_reevaluation()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        // 1. Create a test with 2 MCQ questions
+        $task = \App\Models\Task::create([
+            'course_id' => $this->course->id,
+            'title' => 'Biology MCQ Exam',
+            'description' => 'Answer carefully.',
+            'points' => 10,
+            'due_date' => now()->addDays(7),
+            'is_test' => true,
+            'duration_minutes' => 30,
+            'mcq_negative_marking' => true,
+            'mcq_negative_marking_mode' => 'per_wrong',
+            'mcq_negative_marking_value' => 0.50,
+            'mcq_negative_marking_threshold_count' => 1,
+        ]);
+
+        $q1 = $task->questions()->create([
+            'question_text' => 'What is 1+1?',
+            'type' => 'mcq',
+            'points' => 5,
+            'options' => ['A', 'B', 'C', 'D'],
+            'correct_answer' => 'B',
+        ]);
+
+        $q2 = $task->questions()->create([
+            'question_text' => 'What is 2+2?',
+            'type' => 'mcq',
+            'points' => 5,
+            'options' => ['A', 'B', 'C', 'D'],
+            'correct_answer' => 'C',
+        ]);
+
+        // 2. Student submits exam
+        // Answer Q1 correctly ('B'), and Q2 incorrectly ('A')
+        $response = $this->actingAs($student)
+            ->post(route('student.exam.submit', $task->id), [
+                'answers' => [
+                    $q1->id => 'B',
+                    $q2->id => 'A',
+                ]
+            ]);
+
+        $response->assertRedirect();
+        
+        // Expected score: Q1 is correct (5 pts), Q2 is wrong (0 pts).
+        // Negative marking: 1 wrong MCQ * 0.50 = 0.50 deduction.
+        // Final score: max(0, 5 - 0.50) = 4.5
+        $submission = \App\Models\TaskSubmission::where('task_id', $task->id)->where('user_id', $student->id)->first();
+        $this->assertEquals(4.5, $submission->score);
+        $this->assertEquals(5, $submission->answers['question_grades'][$q1->id]);
+        $this->assertEquals(0, $submission->answers['question_grades'][$q2->id]);
+        $this->assertEquals(1, $submission->answers['mcq_details']['wrong']);
+
+        // 3. Teacher modifies the correct answer for Q2 to 'A'
+        // This should trigger a re-evaluation!
+        // Both answers are now correct: Q1 ('B') is correct (5 pts), Q2 ('A') is correct (5 pts).
+        // Wrong count becomes 0, so deduction is 0.
+        // Expected re-evaluated score: 10
+        $gradeResponse = $this->actingAs($this->teacher)
+            ->post(route('teacher.submissions.evaluate', $submission->id), [
+                'correct_answers' => [
+                    $q2->id => 'A',
+                ],
+                'question_scores' => [
+                    $q1->id => 5,
+                    $q2->id => 5,
+                ],
+                'feedback' => 'Nice work after re-evaluation!',
+            ]);
+
+        $gradeResponse->assertRedirect();
+        
+        $submission->refresh();
+        $this->assertEquals(10, $submission->score);
+        $this->assertEquals(5, $submission->answers['question_grades'][$q1->id]);
+        $this->assertEquals(5, $submission->answers['question_grades'][$q2->id]);
+        $this->assertEquals(0, $submission->answers['mcq_details']['wrong']);
+        $this->assertEquals('Nice work after re-evaluation!', $submission->feedback);
+    }
 }

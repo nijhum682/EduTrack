@@ -20,11 +20,18 @@ class Task extends Model
         'due_date',
         'points',
         'is_test',
-        'duration_minutes'
+        'duration_minutes',
+        'mcq_negative_marking',
+        'mcq_negative_marking_mode',
+        'mcq_negative_marking_value',
+        'mcq_negative_marking_threshold_count'
     ];
 
     protected $casts = [
         'due_date' => 'datetime',
+        'mcq_negative_marking' => 'boolean',
+        'mcq_negative_marking_value' => 'float',
+        'mcq_negative_marking_threshold_count' => 'integer'
     ];
 
     /**

@@ -79,6 +79,19 @@ class StudentExamController extends Controller
         }
         $submission->save();
 
+        // Auto-grade MCQ questions
+        $submission->load(['task.questions']);
+        $result = TaskSubmission::calculateScoreAndDetails($submission);
+        
+        $answers = $submission->answers ?: [];
+        $answers['question_grades'] = $result['question_grades'];
+        $answers['mcq_details'] = $result['mcq_details'];
+
+        $submission->update([
+            'score' => $result['total_score'],
+            'answers' => $answers,
+        ]);
+
         \App\Models\Activity::log('exam_submission', "Submitted test: {$task->title} for {$task->course->title}");
 
         return redirect()->route('dashboard')->with('success', 'Test submitted successfully!');

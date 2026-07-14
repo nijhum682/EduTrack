@@ -15,6 +15,7 @@ class TaskQuestion extends Model
         'type',
         'options',
         'points',
+        'correct_answer',
     ];
 
     protected $casts = [

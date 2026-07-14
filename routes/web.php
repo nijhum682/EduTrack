@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/teacher/dashboard', [App\Http\Controllers\TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
         Route::post('/teacher/courses', [App\Http\Controllers\TeacherDashboardController::class, 'createCourse'])->name('teacher.courses.create');
         Route::post('/teacher/tasks', [App\Http\Controllers\TeacherDashboardController::class, 'createTask'])->name('teacher.tasks.create');
+        Route::post('/teacher/tasks/{task}/update', [App\Http\Controllers\TeacherDashboardController::class, 'updateTask'])->name('teacher.tasks.update');
         Route::post('/teacher/submissions/{submission}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateSubmission'])->name('teacher.submissions.evaluate')->middleware('course.auth');
         Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create');
         Route::post('/teacher/classes/{class}/toggle-active', [App\Http\Controllers\TeacherDashboardController::class, 'toggleClassActive'])->name('teacher.classes.toggle-active');
