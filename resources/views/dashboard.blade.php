@@ -302,7 +302,7 @@
             </div>
 
             <!-- Dashboard Statistics Cards (Values populated dynamically via API Controller) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
                 <!-- Stat 1: Active Courses -->
                 <div class="glass-panel rounded-2xl p-6 shadow-md border border-slate-800/80 transition-all duration-300">
                     <div class="flex items-center justify-between mb-4">
@@ -329,37 +329,6 @@
                     </div>
                     <div class="text-3xl font-extrabold text-white" id="stat-total-credits">-</div>
                     <p class="text-slate-500 text-[10px] mt-1" id="stat-total-credits-sub">Total fee for active courses</p>
-                </div>
-
-                <!-- Stat 3: Completed Tasks -->
-                <div class="glass-panel rounded-2xl p-6 shadow-md border border-slate-800/80 transition-all duration-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Completed Tasks</span>
-                        <div class="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center text-pink-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-extrabold text-white" id="stat-task-percentage">-%</div>
-                    <div class="w-full bg-slate-800 rounded-full h-1.5 mt-2">
-                        <div id="stat-task-progress-bar" class="bg-gradient-to-r from-pink-500 to-purple-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                    <p class="text-slate-500 text-[10px] mt-2" id="stat-task-count">0 of 0 assignments</p>
-                </div>
-
-                <!-- Stat 4: Overall Grade -->
-                <div class="glass-panel rounded-2xl p-6 shadow-md border border-slate-800/80 transition-all duration-300">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Overall Grade</span>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10a2 2 0 01-2 2h-2a2 2 0 01-2-2zm0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="text-3xl font-extrabold text-emerald-400" id="stat-overall-grade">-</div>
-                    <p class="text-slate-500 text-[10px] mt-1" id="stat-overall-grade-sub">Based on completed tasks</p>
                 </div>
             </div>
 
@@ -422,94 +391,7 @@
                     </div>
                 </section>
 
-                <!-- Workspace and Classes Layout Grid (Below Course Catalog) -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                <!-- RIGHT COLUMN: Enrolled Courses & Task Board (5 cols) -->
-                <section class="lg:col-span-5 space-y-6">
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
-                        <div class="mb-4">
-                            <h2 class="text-lg font-bold text-white">My Workspace</h2>
-                            <p class="text-xs text-slate-400">Track tasks for enrolled courses</p>
-                        </div>
-
-                        <!-- Enrolled Tasks & Course Completion Progress (Asynchronously managed by JS) -->
-                        <div id="workspace-container" class="space-y-6 max-h-[570px] overflow-y-auto pr-2">
-                            <!-- Populated dynamically via JS -->
-                            <div class="text-center py-12 text-slate-500 text-sm">
-                                Enroll in courses to start tracking tasks!
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live & Scheduled Classes Widget -->
-                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg mt-6">
-                        <div class="mb-4">
-                            <h2 class="text-lg font-bold text-white">Live & Scheduled Classes</h2>
-                            <p class="text-xs text-slate-400">Join virtual classes hosted by instructors</p>
-                        </div>
-
-                        @php
-                            $enrolledCourseIds = Auth::user()->courses->pluck('id');
-                            $studentClasses = \App\Models\ScheduledClass::whereIn('course_id', $enrolledCourseIds)
-                                ->with('course')
-                                ->orderBy('scheduled_at', 'asc')
-                                ->get()
-                                ->filter(function ($class) {
-                                    $endTime = $class->scheduled_at->copy()->addMinutes($class->duration_minutes);
-                                    return now()->lessThanOrEqualTo($endTime);
-                                });
-                        @endphp
-
-                        <div class="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                            @if($studentClasses->count() === 0)
-                                <div class="text-center py-8 text-slate-500 text-xs italic">
-                                    No classes scheduled for your enrolled courses.
-                                </div>
-                            @else
-                                @foreach($studentClasses as $class)
-                                    <div class="border {{ $class->is_active ? 'border-pink-500/40 bg-pink-950/5' : 'border-slate-800/60 bg-slate-900/10' }} rounded-xl p-3 flex flex-col gap-2 transition-all duration-300">
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-[9px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                                {{ $class->course->code }}
-                                            </span>
-                                            @if($class->is_active)
-                                                <span class="inline-flex items-center gap-1 text-[8px] uppercase font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/30">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-pink-500 animate-ping"></span> Live Now
-                                                </span>
-                                            @else
-                                                <span class="text-[9px] text-slate-500">{{ $class->scheduled_at->diffForHumans() }}</span>
-                                            @endif
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-xs text-white">{{ $class->title }}</div>
-                                            <div class="text-[9px] text-slate-500 mt-0.5">Instructor: {{ $class->course->instructor }}</div>
-                                            <div class="text-[9px] text-slate-500">Platform: <strong>{{ $class->platform }}</strong></div>
-                                        </div>
-                                        <div class="flex items-center justify-between border-t border-slate-800/40 pt-2 mt-1">
-                                            <span class="text-[9px] text-slate-500">{{ $class->scheduled_at->format('M d, H:i') }} &middot; {{ $class->duration_minutes }}m</span>
-                                            @if($class->is_active)
-                                                @if($class->platform === 'In-App Classroom')
-                                                    <a href="{{ route('classroom', $class->id) }}" class="text-[10px] bg-pink-600 hover:bg-pink-500 text-white font-bold py-1 px-2.5 rounded-lg border border-pink-500/20 transition cursor-pointer shadow-md shadow-pink-600/10">
-                                                        💻 Join Live Room
-                                                    </a>
-                                                @elseif($class->meeting_link)
-                                                    <a href="{{ $class->meeting_link }}" target="_blank" class="text-[10px] bg-slate-850 hover:bg-slate-800 text-slate-200 font-bold py-1 px-2.5 rounded-lg border border-slate-700/60 transition cursor-pointer">
-                                                        🔗 Join Meeting
-                                                    </a>
-                                                @endif
-                                            @else
-                                                <span class="text-[9px] text-slate-500 italic">Not started yet</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @endif
-                        </div>
-                    </div>
-                </section>
-
-            </div>
         </div>
     </main>
 
@@ -599,17 +481,25 @@
                             
                             statTotalCredits.textContent = stats.total_credits === 0 ? 'Free' : '৳' + stats.total_credits;
                             
-                            statTaskPercentage.textContent = `${stats.completion_percentage}%`;
-                            statTaskProgressBar.style.width = `${stats.completion_percentage}%`;
-                            statTaskCount.textContent = `${stats.completed_tasks_count} of ${stats.total_tasks_count} completed`;
+                            if (statTaskPercentage) {
+                                statTaskPercentage.textContent = `${stats.completion_percentage}%`;
+                            }
+                            if (statTaskProgressBar) {
+                                statTaskProgressBar.style.width = `${stats.completion_percentage}%`;
+                            }
+                            if (statTaskCount) {
+                                statTaskCount.textContent = `${stats.completed_tasks_count} of ${stats.total_tasks_count} completed`;
+                            }
 
-                            statOverallGrade.textContent = stats.overall_grade;
-                            if (stats.overall_grade === 'N/A') {
-                                statOverallGrade.className = 'text-3xl font-extrabold text-slate-500';
-                            } else if (stats.overall_grade === 'A+' || stats.overall_grade === 'A') {
-                                statOverallGrade.className = 'text-3xl font-extrabold text-emerald-400';
-                            } else {
-                                statOverallGrade.className = 'text-3xl font-extrabold text-indigo-400';
+                            if (statOverallGrade) {
+                                statOverallGrade.textContent = stats.overall_grade;
+                                if (stats.overall_grade === 'N/A') {
+                                    statOverallGrade.className = 'text-3xl font-extrabold text-slate-500';
+                                } else if (stats.overall_grade === 'A+' || stats.overall_grade === 'A') {
+                                    statOverallGrade.className = 'text-3xl font-extrabold text-emerald-400';
+                                } else {
+                                    statOverallGrade.className = 'text-3xl font-extrabold text-indigo-400';
+                                }
                             }
                         }
                     } catch (error) {
@@ -843,6 +733,7 @@
 
                 // Helper: Render My Enrolled Workspace & Task Completion Lists (Right Column)
                 function renderWorkspace(enrolledCourses) {
+                    if (!workspaceContainer) return;
                     if (enrolledCourses.length === 0) {
                         workspaceContainer.innerHTML = `
                             <div class="text-center py-12 text-slate-500 text-sm border border-dashed border-slate-800 rounded-2xl bg-slate-900/10">
@@ -876,7 +767,7 @@
                                 const userSub = task.submissions && task.submissions[0];
                                 const isCompleted = userSub && userSub.is_completed;
                                 const checkAttr = isCompleted ? 'checked' : '';
-                                const lineStrike = isCompleted ? 'line-through text-slate-500' : 'text-slate-200';
+                                const lineStrike = isCompleted ? 'text-slate-500' : 'text-slate-200';
                                 
                                 const isGraded = userSub && userSub.score !== null && userSub.score !== undefined;
                                 let gradeBadge = '';
@@ -1008,11 +899,11 @@
                         if (response.ok && data.success) {
                             // Apply visual line strike dynamic changes on completion status
                             if (data.is_completed) {
-                                label.classList.add('line-through', 'text-slate-500');
+                                label.classList.add('text-slate-500');
                                 label.classList.remove('text-slate-200');
                                 showToast('Task marked as completed.');
                             } else {
-                                label.classList.remove('line-through', 'text-slate-500');
+                                label.classList.remove('text-slate-500');
                                 label.classList.add('text-slate-200');
                                 showToast('Task marked as pending.');
                             }

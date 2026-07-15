@@ -28,15 +28,34 @@
             --text-muted: #94a3b8;
             --accent-glow: rgba(99, 102, 241, 0.15);
         }
+        /* Modern Space Light Theme system */
+        .theme-space-light {
+            --bg-base: #f8fafc;
+            --bg-surface: rgba(255, 255, 255, 0.55);
+            --border-color: rgba(15, 23, 42, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent-glow: rgba(99, 102, 241, 0.05);
+        }
         body {
             background-color: var(--bg-base);
             color: var(--text-main);
             font-family: 'Outfit', sans-serif;
+            background-attachment: fixed;
+        }
+        body.theme-space-dark {
             background-image: 
                 radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
                 radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.08) 0px, transparent 50%),
                 radial-gradient(at 50% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
-            background-attachment: fixed;
+        }
+        body.theme-space-light {
+            background-image: 
+                linear-gradient(135deg, rgba(255, 255, 255, 0.84) 0%, rgba(237, 244, 254, 0.84) 65%, rgba(218, 231, 252, 0.84) 100%),
+                url('{{ asset('images/header-image.png') }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
         .glass-panel {
             background: rgba(11, 15, 25, 0.65);
@@ -45,9 +64,57 @@
             border: 1px solid rgba(255, 255, 255, 0.04);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
+        
+        /* Space Light Theme Specific Element Overrides */
+        body.theme-space-light .glass-panel {
+            background: rgba(255, 255, 255, 0.55) !important;
+            border-color: rgba(15, 23, 42, 0.08) !important;
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04) !important;
+        }
+        body.theme-space-light .text-white,
+        body.theme-space-light h1,
+        body.theme-space-light h2,
+        body.theme-space-light h3,
+        body.theme-space-light h4 {
+            color: #0f172a !important;
+        }
+        body.theme-space-light .text-slate-200 {
+            color: #1e293b !important;
+        }
+        body.theme-space-light .text-slate-300 {
+            color: #334155 !important;
+        }
+        body.theme-space-light .text-slate-400 {
+            color: #475569 !important;
+        }
+        body.theme-space-light .text-slate-500 {
+            color: #64748b !important;
+        }
+        body.theme-space-light label {
+            background: rgba(255, 255, 255, 0.6) !important;
+            border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        body.theme-space-light label:hover {
+            background: rgba(15, 23, 42, 0.03) !important;
+        }
+        body.theme-space-light textarea {
+            background: rgba(255, 255, 255, 0.75) !important;
+            border-color: rgba(15, 23, 42, 0.12) !important;
+            color: #0f172a !important;
+        }
+        body.theme-space-light .border-dashed {
+            border-color: rgba(15, 23, 42, 0.15) !important;
+            background: rgba(15, 23, 42, 0.02) !important;
+        }
     </style>
 </head>
-<body class="theme-space-dark min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
+    <script>
+        (function() {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            document.body.classList.add(currentTheme === 'dark' ? 'theme-space-dark' : 'theme-space-light');
+        })();
+    </script>
 
     <!-- Exam Top Bar -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">

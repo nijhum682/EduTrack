@@ -23,7 +23,10 @@ class TaskSubmission extends Model
         'feedback',
         'graded_at',
         'answers',
-        'uploaded_file'
+        'uploaded_file',
+        'review_requested',
+        'review_reason',
+        'review_status'
     ];
 
     protected $casts = [

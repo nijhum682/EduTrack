@@ -372,6 +372,10 @@ class TeacherDashboardController extends Controller
         \App\Models\Activity::log('submission_evaluation', "Graded task submission for student {$submission->user->name} on task: {$submission->task->title}");
         \App\Models\Activity::log('grade_received', "Your submission for task: {$submission->task->title} has been graded by " . Auth::user()->name . ".", $submission->user_id);
 
+        if ($submission->review_requested) {
+            $submission->update(['review_status' => 'reviewed']);
+        }
+
         return redirect()->back()->with('success', 'Submission evaluated and graded successfully!');
     }
 

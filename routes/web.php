@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Student assignment submissions
         Route::post('/course/{course}/tasks/{task}/submit', [App\Http\Controllers\CourseApiController::class, 'submitAssignment'])->name('course.tasks.submit')->middleware('student');
+        Route::post('/course/{course}/submissions/{submission}/review', [App\Http\Controllers\CourseApiController::class, 'submitReviewRequest'])->name('course.submissions.review')->middleware('student');
 
         // Teacher editing operations scoped to a course
         Route::middleware(['teacher'])->group(function () {

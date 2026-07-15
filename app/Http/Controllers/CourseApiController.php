@@ -566,6 +566,33 @@ class CourseApiController extends Controller
     }
 
     /**
+     * Submit a review request for a test/assignment grade.
+     */
+    public function submitReviewRequest(Request $request, Course $course, TaskSubmission $submission)
+    {
+        $user = Auth::user();
+
+        // Verify the submission belongs to the current user
+        if ($submission->user_id !== $user->id) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'review_reason' => 'required|string|max:1000',
+        ]);
+
+        $submission->update([
+            'review_requested' => true,
+            'review_reason' => $request->review_reason,
+            'review_status' => 'pending'
+        ]);
+
+        \App\Models\Activity::log('grade_review_request', "Requested grade review for: {$submission->task->title} in {$course->title}");
+
+        return redirect()->back()->with('success', 'Grade review request submitted to teacher successfully.');
+    }
+
+    /**
      * Delete a Q&A question.
      */
     public function deleteQuestion(Course $course, CourseQuestion $question)

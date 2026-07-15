@@ -386,6 +386,48 @@
             span.status-badge {
                 color: #ffffff !important;
             }
+
+            /* Student Workspace Assignment and Results Overrides */
+            body.theme-space-light .workspace-task-card {
+                background: rgba(255, 255, 255, 0.6) !important;
+                border-color: rgba(15, 23, 42, 0.08) !important;
+                box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02) !important;
+            }
+            body.theme-space-light .workspace-task-card h4,
+            body.theme-space-light .workspace-task-card .text-slate-200,
+            body.theme-space-light .workspace-task-card .text-base {
+                color: #0f172a !important;
+                opacity: 1 !important;
+            }
+            body.theme-space-light .workspace-task-card .text-slate-500,
+            body.theme-space-light .workspace-task-card .text-[10px],
+            body.theme-space-light .workspace-task-card span {
+                color: #475569 !important;
+                opacity: 0.95 !important;
+            }
+            body.theme-space-light .workspace-task-card .text-slate-300,
+            body.theme-space-light .workspace-task-card .text-slate-400,
+            body.theme-space-light .workspace-task-card strong {
+                color: #334155 !important;
+                opacity: 0.95 !important;
+            }
+            body.theme-space-light .task-feedback-box {
+                background: rgba(15, 23, 42, 0.03) !important;
+                border-color: rgba(15, 23, 42, 0.06) !important;
+            }
+            body.theme-space-light .task-feedback-box p.text-slate-300 {
+                color: #1e293b !important;
+                opacity: 1 !important;
+            }
+            body.theme-space-light .task-review-textarea {
+                background: rgba(255, 255, 255, 0.9) !important;
+                border-color: rgba(15, 23, 42, 0.12) !important;
+                color: #0f172a !important;
+            }
+            body.theme-space-light .task-review-textarea::placeholder {
+                color: #94a3b8 !important;
+                opacity: 0.8 !important;
+            }
         </style>
     </head>
     <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
@@ -494,6 +536,14 @@
                 <button onclick="switchTab('qa')" id="tab-btn-qa" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                     💬 Q&A Discussion
                 </button>
+                @if(Auth::user()->isStudent())
+                    <button onclick="switchTab('assignments')" id="tab-btn-assignments" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
+                        ✍️ Assignments / HW
+                    </button>
+                    <button onclick="switchTab('results')" id="tab-btn-results" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
+                        🏆 Results & Reviews
+                    </button>
+                @endif
                 @if(Auth::user()->isTeacher())
                     <button onclick="switchTab('prepare-question')" id="tab-btn-prepare-question" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                         📝 Prepare Question
@@ -1068,6 +1118,145 @@
                 </div>
             </div>
 
+            @if(Auth::user()->isStudent())
+                <!-- TAB CONTENT: ASSIGNMENTS / HW -->
+                <div id="tab-content-assignments" class="tab-pane hidden space-y-6">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h3 class="text-lg font-bold text-white mb-2">Assigned Tasks</h3>
+                        <p class="text-xs text-slate-400 mb-6">View and attempt your assignments and exams for this course.</p>
+                        
+                        @if($course->tasks->count() === 0)
+                            <div class="text-center py-12 text-slate-500 italic text-sm">
+                                No tasks assigned for this course.
+                            </div>
+                        @else
+                            <div class="space-y-4">
+                                @foreach($course->tasks->sortByDesc('created_at') as $task)
+                                    @php
+                                        $sub = $task->submissions->where('user_id', Auth::id())->first();
+                                        $isCompleted = $sub && $sub->is_completed;
+                                    @endphp
+                                    <div class="workspace-task-card bg-slate-900/60 rounded-2xl p-5 border border-slate-850 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div class="flex-grow">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-base font-bold text-slate-200">{{ $task->title }}</span>
+                                                @if($task->is_test)
+                                                    <span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider">Exam</span>
+                                                @endif
+                                                @if($isCompleted)
+                                                    <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">✅ Completed</span>
+                                                @else
+                                                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">⏳ Pending</span>
+                                                @endif
+                                            </div>
+                                            <p class="text-xs text-slate-400 mt-2">{{ $task->description ?: 'No description provided.' }}</p>
+                                            <div class="flex gap-4 mt-3 text-[10px] text-slate-500">
+                                                <span>Marks: <strong class="text-slate-400">{{ $task->points }} pts</strong></span>
+                                                <span>Due: <strong class="text-slate-400">{{ $task->due_date ? $task->due_date->format('M d, Y') : '—' }}</strong></span>
+                                                @if($task->duration_minutes)
+                                                    <span>Duration: <strong class="text-slate-400">⏱ {{ $task->duration_minutes }} Mins</strong></span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            @if($isCompleted)
+                                                <span class="text-xs text-emerald-400 font-bold flex items-center gap-1">
+                                                    Done
+                                                </span>
+                                            @else
+                                                <a href="/exam/{{ $task->id }}" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md shadow-indigo-660/20 active:scale-[0.98] transition cursor-pointer inline-block">
+                                                    ✍️ Start Exam
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- TAB CONTENT: RESULTS & REVIEWS -->
+                <div id="tab-content-results" class="tab-pane hidden space-y-6">
+                    <div class="glass-panel rounded-3xl p-6 border border-slate-800/80 shadow-lg">
+                        <h3 class="text-lg font-bold text-white mb-2">Test Results & Performance</h3>
+                        <p class="text-xs text-slate-400 mb-6">Review your scores, feedback, and request grade re-evaluations if needed.</p>
+
+                        @php
+                            $mySubmissions = \App\Models\TaskSubmission::whereIn('task_id', $course->tasks->pluck('id'))
+                                ->where('user_id', Auth::id())
+                                ->with('task')
+                                ->orderBy('updated_at', 'desc')
+                                ->get();
+                        @endphp
+
+                        @if($mySubmissions->count() === 0)
+                            <div class="text-center py-12 text-slate-500 italic text-sm">
+                                You have not submitted any tests for this course yet.
+                            </div>
+                        @else
+                            <div class="space-y-6">
+                                @foreach($mySubmissions as $sub)
+                                    <div class="workspace-task-card bg-slate-900/60 rounded-2xl p-5 border border-slate-850 space-y-4">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                                            <div>
+                                                <h4 class="text-sm font-bold text-slate-200">{{ $sub->task->title }}</h4>
+                                                <span class="text-[10px] text-slate-500">Submitted: {{ $sub->updated_at->format('M d, Y - H:i') }}</span>
+                                            </div>
+                                            <div class="text-right">
+                                                <span class="text-[10px] text-slate-500 block">Marks Obtained</span>
+                                                @if(is_null($sub->score))
+                                                    <span class="text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/25 px-2 py-0.5 rounded-lg">Pending Grading</span>
+                                                @else
+                                                    <span class="text-base font-extrabold text-emerald-400">{{ $sub->score }}</span>
+                                                    <span class="text-xs text-slate-500">/ {{ $sub->task->points }} pts</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        @if(!is_null($sub->score))
+                                            <!-- Feedback & Teacher Remarks -->
+                                            <div class="task-feedback-box bg-slate-950/30 rounded-xl p-3 border border-slate-850/60 text-xs">
+                                                <span class="font-bold text-indigo-400 block mb-1">Feedback / Remarks:</span>
+                                                <p class="text-slate-300 italic">"{{ $sub->feedback ?: 'No specific feedback was provided.' }}"</p>
+                                            </div>
+
+                                            <!-- Review Grade Request -->
+                                            <div class="border-t border-slate-850 pt-3 mt-2">
+                                                @if($sub->review_requested)
+                                                    <div class="p-3.5 rounded-xl text-xs space-y-2 {{ $sub->review_status === 'reviewed' ? 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-400' : 'bg-amber-950/40 border border-amber-500/30 text-amber-400' }}">
+                                                        <div class="flex items-center justify-between font-bold">
+                                                            <span>{{ $sub->review_status === 'reviewed' ? '✅ Re-Evaluation Completed' : '⚠️ Grade Review Pending' }}</span>
+                                                            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded {{ $sub->review_status === 'reviewed' ? 'bg-emerald-500/10' : 'bg-amber-500/10' }}">{{ $sub->review_status }}</span>
+                                                        </div>
+                                                        <p class="text-[11px] text-slate-300 mt-1 font-medium">Your Reason: <span class="italic font-normal">"{{ $sub->review_reason }}"</span></p>
+                                                    </div>
+                                                @else
+                                                    <div class="space-y-3">
+                                                        <div class="text-xs font-semibold text-slate-300">Request Re-Evaluation?</div>
+                                                        <p class="text-[10px] text-slate-500">If your marks are not satisfactory, submit a brief reason below to request a manual review from your teacher.</p>
+                                                        
+                                                        <form action="{{ route('course.submissions.review', [$course->id, $sub->id]) }}" method="POST" class="space-y-3">
+                                                            @csrf
+                                                            <textarea name="review_reason" required placeholder="State your reason (e.g. My written answer was correctly justified but got partial marks...)" rows="2" class="task-review-textarea w-full bg-slate-950/40 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 placeholder-slate-600 outline-none focus:border-indigo-500 transition leading-relaxed"></textarea>
+                                                            <div class="text-right">
+                                                                <button type="submit" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold text-[10px] py-1.5 px-4 rounded-lg shadow-md transition cursor-pointer">
+                                                                    Submit Review Request
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             @if(Auth::user()->isTeacher())
                 <!-- TAB CONTENT: PREPARE QUESTION -->
                 <div id="tab-content-prepare-question" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
@@ -1250,6 +1439,11 @@
                                                 <td class="py-4 px-4">
                                                     <div class="font-bold text-slate-200">{{ $sub->user->name }}</div>
                                                     <div class="text-[10px] text-slate-500">{{ $sub->user->email }}</div>
+                                                    @if($sub->review_requested && $sub->review_status === 'pending')
+                                                        <span class="inline-block bg-rose-500/10 text-rose-400 border border-rose-500/25 px-2 py-0.5 rounded text-[9px] font-extrabold uppercase mt-1">⚠️ Review Requested</span>
+                                                    @elseif($sub->review_requested && $sub->review_status === 'reviewed')
+                                                        <span class="inline-block bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded text-[9px] font-bold uppercase mt-1">✅ Reviewed</span>
+                                                    @endif
                                                 </td>
                                                 <!-- Task -->
                                                 <td class="py-4 px-4">
@@ -1271,6 +1465,13 @@
                                                             {{ $sub->score }} <span class="text-[10px] text-slate-500">/ {{ $sub->task->points }}</span>
                                                         </div>
                                                         <div class="text-[10px] text-slate-500 italic mt-0.5">Feedback: "{{ Str::limit($sub->feedback ?: 'No remarks', 30) }}"</div>
+                                                    @endif
+
+                                                    @if($sub->review_requested && $sub->review_reason)
+                                                        <div class="mt-2 text-[10px] bg-slate-955/40 border border-slate-850 p-2 rounded-lg text-slate-300 max-w-xs">
+                                                            <strong class="text-rose-400 font-semibold">Student's Review Reason:</strong>
+                                                            <p class="italic mt-0.5 leading-normal">"{{ $sub->review_reason }}"</p>
+                                                        </div>
                                                     @endif
                                                 </td>
                                                 <!-- Actions -->
