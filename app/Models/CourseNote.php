@@ -37,6 +37,25 @@ class CourseNote extends Model
      */
     public function comments(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(CourseNoteComment::class, 'course_note_id');
+        return $this->hasMany(CourseNoteComment::class, 'course_note_id')->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Relationship: A note has many likes.
+     */
+    public function likes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CourseNoteLike::class, 'course_note_id');
+    }
+
+    /**
+     * Helper to check if a note is liked by a given user.
+     */
+    public function isLikedBy($user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        return $this->likes()->where('user_id', $user->id)->exists();
     }
 }

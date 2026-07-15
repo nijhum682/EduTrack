@@ -77,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/course/{course}', [App\Http\Controllers\CourseApiController::class, 'showCourseDetails'])->name('course.show');
         Route::post('/course/{course}/notes', [App\Http\Controllers\CourseApiController::class, 'uploadNote'])->name('course.notes.upload')->middleware('student');
         Route::post('/course/{course}/notes/{note}/comment', [App\Http\Controllers\CourseApiController::class, 'commentNote'])->name('course.notes.comment');
+        Route::post('/course/{course}/notes/{note}/comments/{comment}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteNoteComment'])->name('course.notes.comment.delete');
+        Route::post('/course/{course}/notes/{note}/like', [App\Http\Controllers\CourseApiController::class, 'likeNote'])->name('course.notes.like');
         Route::post('/course/{course}/lectures/{lecture}/comment', [App\Http\Controllers\CourseApiController::class, 'commentLecture'])->name('course.lectures.comment');
         Route::post('/course/{course}/lectures/{lecture}/comments/{comment}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteLectureComment'])->name('course.lectures.comment.delete');
         Route::post('/course/{course}/lectures/{lecture}/like', [App\Http\Controllers\CourseApiController::class, 'likeLecture'])->name('course.lectures.like');

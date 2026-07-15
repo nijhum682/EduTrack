@@ -339,6 +339,52 @@ class CourseWorkspaceTest extends TestCase
     }
 
     /**
+     * Test student can request a review and corresponding teacher gets a notification.
+     */
+    public function test_student_can_request_grade_review_and_notifies_teacher()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $task = \App\Models\Task::create([
+            'course_id' => $this->course->id,
+            'title' => 'Midterm Exam',
+            'points' => 100,
+            'due_date' => now()->addDays(7),
+        ]);
+
+        $submission = \App\Models\TaskSubmission::create([
+            'task_id' => $task->id,
+            'user_id' => $student->id,
+            'is_completed' => true,
+            'score' => 50,
+            'feedback' => 'Need improvement.',
+        ]);
+
+        // Submit review request
+        $response = $this->actingAs($student)
+            ->post(route('course.submissions.review', [$this->course->id, $submission->id]), [
+                'review_reason' => 'I believe I solved Q3 correctly.',
+            ]);
+
+        $response->assertRedirect();
+
+        // Verify review fields updated in database
+        $this->assertDatabaseHas('task_submissions', [
+            'id' => $submission->id,
+            'review_requested' => true,
+            'review_reason' => 'I believe I solved Q3 correctly.',
+            'review_status' => 'pending',
+        ]);
+
+        // Verify notification created for teacher
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $this->teacher->id,
+            'type' => 'grade_review_request',
+        ]);
+    }
+
+    /**
      * Test student can comment on shared notes.
      */
     public function test_student_can_comment_on_shared_note()
@@ -545,5 +591,115 @@ class CourseWorkspaceTest extends TestCase
         $this->assertEquals(5, $submission->answers['question_grades'][$q2->id]);
         $this->assertEquals(0, $submission->answers['mcq_details']['wrong']);
         $this->assertEquals('Nice work after re-evaluation!', $submission->feedback);
+    }
+
+    /**
+     * Test assignments flow including deadlines, extensions, and submission security.
+     */
+    public function test_assignment_deadline_enforcement_and_extension()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        // 1. Create an assignment that is past due date (deadline over)
+        $assignment = \App\Models\Task::create([
+            'course_id' => $this->course->id,
+            'title' => 'Biology Assignment 1',
+            'points' => 50,
+            'is_test' => false,
+            'due_date' => now()->subDay(), // past deadline
+        ]);
+
+        // 2. Student attempts to submit after deadline
+        $response = $this->actingAs($student)
+            ->post(route('course.tasks.submit', [$this->course->id, $assignment->id]), [
+                'response_text' => 'My late homework response',
+            ]);
+
+        // Should return redirect with error (deadline over)
+        $response->assertRedirect();
+        $response->assertSessionHas('error', 'The submission deadline for this assignment has passed.');
+
+        // 3. Teacher extends the deadline
+        $extendResponse = $this->actingAs($this->teacher)
+            ->post(route('teacher.tasks.update', $assignment->id), [
+                'due_date' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            ]);
+
+        $extendResponse->assertRedirect();
+        
+        $assignment->refresh();
+        $this->assertTrue(now()->lt($assignment->due_date));
+
+        // 4. Student attempts to submit again (should succeed now)
+        $response2 = $this->actingAs($student)
+            ->post(route('course.tasks.submit', [$this->course->id, $assignment->id]), [
+                'response_text' => 'My on-time homework response',
+            ]);
+
+        $response2->assertRedirect();
+        $response2->assertSessionHas('success');
+
+        $this->assertDatabaseHas('task_submissions', [
+            'task_id' => $assignment->id,
+            'user_id' => $student->id,
+            'is_completed' => true,
+        ]);
+    }
+
+    /**
+     * Test enrolled student can like and delete comment on a shared note.
+     */
+    public function test_student_can_like_and_delete_comment_on_shared_note()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $note = \App\Models\CourseNote::create([
+            'course_id' => $this->course->id,
+            'user_id' => $student->id,
+            'title' => 'Biology Formulas Sheet',
+            'file_path' => 'uploads/notes/biology_formulas.pdf',
+        ]);
+
+        // 1. Like the note (regular request)
+        $likeResponse = $this->actingAs($student)
+            ->post(route('course.notes.like', [$this->course->id, $note->id]));
+
+        $likeResponse->assertRedirect();
+        $this->assertDatabaseHas('course_note_likes', [
+            'course_note_id' => $note->id,
+            'user_id' => $student->id,
+        ]);
+
+        // 2. Unlike the note (AJAX request)
+        $unlikeResponse = $this->actingAs($student)
+            ->post(route('course.notes.like', [$this->course->id, $note->id]), [], ['X-Requested-With' => 'XMLHttpRequest']);
+
+        $unlikeResponse->assertJsonFragment([
+            'success' => true,
+            'liked' => false,
+            'count' => 0,
+        ]);
+        $this->assertDatabaseMissing('course_note_likes', [
+            'course_note_id' => $note->id,
+            'user_id' => $student->id,
+        ]);
+
+        // 3. Create a note comment
+        $comment = \App\Models\CourseNoteComment::create([
+            'course_note_id' => $note->id,
+            'user_id' => $student->id,
+            'comment_text' => 'First note comment',
+        ]);
+
+        // 4. Delete the note comment
+        $deleteResponse = $this->actingAs($student)
+            ->post(route('course.notes.comment.delete', [$this->course->id, $note->id, $comment->id]));
+
+        $deleteResponse->assertRedirect();
+        $this->assertDatabaseMissing('course_note_comments', [
+            'id' => $comment->id,
+        ]);
     }
 }

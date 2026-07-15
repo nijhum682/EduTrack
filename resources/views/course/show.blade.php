@@ -511,9 +511,6 @@
                             <span class="course-badge px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wide">
                                 {{ $course->code }}
                             </span>
-                            <span class="course-credits text-xs text-slate-300 font-medium">
-                                {{ $course->credits }} Credits
-                            </span>
                         </div>
                         <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight mb-2">
                             {{ $course->title }}
