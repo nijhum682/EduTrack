@@ -195,7 +195,7 @@ class TeacherDashboardController extends Controller
         }
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'due_date' => 'required|date',
             'duration_minutes' => 'nullable|integer|min:5|max:480',
@@ -212,10 +212,10 @@ class TeacherDashboardController extends Controller
         }
 
         $task->update([
-            'title' => $request->title,
-            'description' => $request->description,
+            'title' => $request->input('title', $task->title),
+            'description' => $request->has('description') ? $request->description : $task->description,
             'due_date' => $request->due_date,
-            'points' => $totalPoints ?: $task->points,
+            'points' => $totalPoints ?: ($request->has('points') ? intval($request->points) : $task->points),
             'duration_minutes' => $request->input('duration_minutes', $task->duration_minutes),
             'mcq_negative_marking' => $request->boolean('mcq_negative_marking'),
             'mcq_negative_marking_mode' => 'per_wrong',

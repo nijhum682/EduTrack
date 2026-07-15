@@ -229,6 +229,15 @@
             .tab-btn {
                 color: #94a3b8;
                 border: 1px solid transparent;
+                flex-shrink: 0 !important;
+                white-space: nowrap !important;
+            }
+            .scrollbar-none::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-none {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
             }
             .tab-btn:hover {
                 color: #f1f5f9;
@@ -523,7 +532,7 @@
             </div>
 
             <!-- Tab Buttons Container -->
-            <div class="flex flex-wrap gap-2 border-b border-slate-800/60 pb-3 mb-8">
+            <div class="flex flex-nowrap overflow-x-auto gap-2 border-b border-slate-800/60 pb-3 mb-8 scrollbar-none">
                 <button onclick="switchTab('details')" id="tab-btn-details" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                     📋 Course Details
                 </button>
@@ -548,8 +557,11 @@
                     <button onclick="switchTab('prepare-question')" id="tab-btn-prepare-question" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
                         📝 Prepare Question
                     </button>
+                    <button onclick="switchTab('teacher-assignments')" id="tab-btn-teacher-assignments" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
+                        ✍️ Assignments / HW
+                    </button>
                     <button onclick="switchTab('evaluations')" id="tab-btn-evaluations" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold border border-transparent hover:border-slate-800/80 transition cursor-pointer flex items-center gap-2">
-                        📝 Evaluate Submissions
+                        📝 Evaluate
                         @if($submissions->whereNull('score')->count() > 0)
                             <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                         @endif
@@ -977,27 +989,98 @@
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach($course->notes as $note)
-                                <div class="border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 flex items-start gap-4 hover:border-indigo-500/30 transition-all duration-300">
-                                    <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20 text-xl font-bold flex-shrink-0">
-                                        📄
+                                <div class="border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 flex flex-col gap-4 hover:border-indigo-500/30 transition-all duration-300">
+                                    <div class="flex items-start gap-4">
+                                        <div class="p-3 bg-rose-500/10 rounded-xl text-rose-400 border border-rose-500/20 text-xl font-bold flex-shrink-0">
+                                            📄
+                                        </div>
+                                        <div class="flex-grow space-y-2 min-w-0">
+                                            <h3 class="font-bold text-sm text-white truncate" title="{{ $note->title }}">{{ $note->title }}</h3>
+                                            <div class="text-xs text-slate-400">
+                                                Shared by: <strong class="text-slate-300">{{ $note->user->name }}</strong> 
+                                                @if($note->user->isTeacher()) 
+                                                    <span class="bg-purple-500/10 text-purple-300 text-[8px] font-extrabold uppercase px-1 rounded border border-purple-500/25 ml-1">Teacher</span>
+                                                @endif
+                                            </div>
+                                            <div class="text-[9px] text-slate-500">{{ $note->created_at->diffForHumans() }}</div>
+                                            <div class="pt-2 flex gap-2">
+                                                <a href="{{ asset($note->file_path) }}" target="_blank" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold py-1 px-3 rounded text-[10px] border border-slate-700/60 transition inline-flex items-center gap-1">
+                                                    👓 View PDF
+                                                </a>
+                                                <a href="{{ asset($note->file_path) }}" download class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-1 px-3 rounded text-[10px] shadow border border-indigo-500/20 transition inline-flex items-center gap-1">
+                                                    📥 Download
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="flex-grow space-y-2 min-w-0">
-                                        <h3 class="font-bold text-sm text-white truncate" title="{{ $note->title }}">{{ $note->title }}</h3>
-                                        <div class="text-xs text-slate-400">
-                                            Shared by: <strong class="text-slate-300">{{ $note->user->name }}</strong> 
-                                            @if($note->user->isTeacher()) 
-                                                <span class="bg-purple-500/10 text-purple-300 text-[8px] font-extrabold uppercase px-1 rounded border border-purple-500/25 ml-1">Teacher</span>
+
+                                    <!-- Facebook-like Action Bar for Notes -->
+                                    <div class="flex items-center gap-6 py-2 border-y border-slate-800/40 my-1 text-xs text-slate-400">
+                                        <!-- Like Button (AJAX Post) -->
+                                        <form id="like-form-note-{{ $note->id }}" class="inline">
+                                            @csrf
+                                            <button type="button" onclick="toggleLikeNoteAjax({{ $note->id }}, '{{ route('course.notes.like', [$course->id, $note->id]) }}')" class="like-btn-note-{{ $note->id }} lecture-action-btn flex items-center gap-1.5 font-semibold transition cursor-pointer {{ $note->isLikedBy(Auth::user()) ? 'liked-active' : '' }}">
+                                                <span>👍</span>
+                                                <span class="like-text">{{ $note->isLikedBy(Auth::user()) ? 'Liked' : 'Like' }}</span>
+                                                <span class="like-count action-count px-1.5 py-0.5 rounded text-[10px] font-bold {{ $note->likes->count() === 0 ? 'hidden' : '' }}">
+                                                    {{ $note->likes->count() }}
+                                                </span>
+                                            </button>
+                                        </form>
+
+                                        <!-- Comment Trigger Icon/Button -->
+                                        <button onclick="toggleNoteCommentsSection({{ $note->id }})" class="lecture-action-btn flex items-center gap-1.5 font-semibold transition cursor-pointer">
+                                            <span>💬</span>
+                                            <span>Comment</span>
+                                            @if($note->comments->count() > 0)
+                                                <span class="action-count px-1.5 py-0.5 rounded text-[10px] font-bold">{{ $note->comments->count() }}</span>
                                             @endif
-                                        </div>
-                                        <div class="text-[9px] text-slate-500">{{ $note->created_at->diffForHumans() }}</div>
-                                        <div class="pt-2 flex gap-2">
-                                            <a href="{{ asset($note->file_path) }}" target="_blank" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold py-1 px-3 rounded text-[10px] border border-slate-700/60 transition inline-flex items-center gap-1">
-                                                👓 View PDF
-                                            </a>
-                                            <a href="{{ asset($note->file_path) }}" download class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-1 px-3 rounded text-[10px] shadow border border-indigo-500/20 transition inline-flex items-center gap-1">
-                                                📥 Download
-                                            </a>
-                                        </div>
+                                        </button>
+                                    </div>
+
+                                    <!-- Comments section for this Note -->
+                                    <div id="note-comments-section-{{ $note->id }}" class="hidden mt-2 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-3">
+                                        <h4 class="text-[10px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-slate-200">Comments & Discussion ({{ $note->comments->count() }})</h4>
+                                        
+                                        <!-- Comments list -->
+                                        @if($note->comments->count() > 0)
+                                            <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                                                @foreach($note->comments as $comment)
+                                                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs space-y-1 shadow-sm">
+                                                        <div class="flex justify-between items-center text-[9px] text-slate-500 dark:text-slate-400">
+                                                            <span class="flex items-center gap-1.5">
+                                                                <strong class="font-bold {{ $comment->user->isTeacher() ? 'text-purple-600 dark:text-purple-400' : 'text-slate-900 dark:text-slate-100' }}">{{ $comment->user->name }}</strong>
+                                                                @if($comment->user->isTeacher())
+                                                                    <span class="text-[7px] font-extrabold uppercase border px-1 py-0.2 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800/60">Teacher</span>
+                                                                @endif
+                                                            </span>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span>{{ $comment->created_at->diffForHumans() }}</span>
+                                                                @if(Auth::id() === $comment->user_id || Auth::user()->isTeacher())
+                                                                    <span>&middot;</span>
+                                                                    <form action="{{ route('course.notes.comment.delete', [$course->id, $note->id, $comment->id]) }}" method="POST" class="inline m-0 p-0" onsubmit="return confirm('Delete this comment?');">
+                                                                        @csrf
+                                                                        <button type="submit" class="bg-transparent border-0 p-0 font-semibold hover:underline cursor-pointer text-slate-500 dark:text-slate-400 text-[9px]">Delete</button>
+                                                                    </form>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                        <p class="leading-relaxed text-slate-800 dark:text-slate-200">{{ $comment->comment_text }}</p>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+
+                                        <!-- Add Comment Form -->
+                                        <form action="{{ route('course.notes.comment', [$course->id, $note->id]) }}" method="POST" class="mt-2">
+                                            @csrf
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" name="comment_text" required placeholder="Write a comment..." class="flex-grow bg-slate-950/30 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-850 rounded-xl py-1.5 px-3 text-xs text-slate-900 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-purple-500 transition">
+                                                <button type="submit" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-[10px] py-1.5 px-3 rounded-lg shadow transition cursor-pointer flex-shrink-0">
+                                                    Post
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             @endforeach
@@ -1142,31 +1225,60 @@
                                                 <span class="text-base font-bold text-slate-200">{{ $task->title }}</span>
                                                 @if($task->is_test)
                                                     <span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/25 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider">Exam</span>
+                                                @else
+                                                    <span class="bg-purple-500/10 text-purple-300 border border-purple-500/25 px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider text-[8px]">Assignment</span>
                                                 @endif
                                                 @if($isCompleted)
                                                     <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">✅ Completed</span>
                                                 @else
-                                                    <span class="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">⏳ Pending</span>
+                                                    @if(!$task->is_test && \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($task->due_date)))
+                                                        <span class="bg-rose-500/10 text-rose-400 border border-rose-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">⏳ Closed</span>
+                                                    @else
+                                                        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/25 px-1.5 py-0.5 rounded text-[8px] font-bold">⏳ Pending</span>
+                                                    @endif
                                                 @endif
                                             </div>
                                             <p class="text-xs text-slate-400 mt-2">{{ $task->description ?: 'No description provided.' }}</p>
                                             <div class="flex gap-4 mt-3 text-[10px] text-slate-500">
                                                 <span>Marks: <strong class="text-slate-400">{{ $task->points }} pts</strong></span>
-                                                <span>Due: <strong class="text-slate-400">{{ $task->due_date ? $task->due_date->format('M d, Y') : '—' }}</strong></span>
-                                                @if($task->duration_minutes)
+                                                <span>Due: <strong class="text-slate-400">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('M d, Y - H:i') : '—' }}</strong></span>
+                                                @if($task->duration_minutes && $task->is_test)
                                                     <span>Duration: <strong class="text-slate-400">⏱ {{ $task->duration_minutes }} Mins</strong></span>
                                                 @endif
                                             </div>
                                         </div>
-                                        <div class="flex-shrink-0">
+                                        <div class="flex-shrink-0 w-full md:w-auto">
                                             @if($isCompleted)
-                                                <span class="text-xs text-emerald-400 font-bold flex items-center gap-1">
-                                                    Done
-                                                </span>
+                                                <div class="text-right">
+                                                    <span class="text-xs text-emerald-400 font-bold block">
+                                                        Submitted
+                                                    </span>
+                                                    @if($sub->uploaded_file)
+                                                        <a href="{{ asset($sub->uploaded_file) }}" target="_blank" class="text-[10px] text-indigo-400 hover:underline block mt-1">Download Submitted File</a>
+                                                    @endif
+                                                </div>
                                             @else
-                                                <a href="/exam/{{ $task->id }}" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md shadow-indigo-660/20 active:scale-[0.98] transition cursor-pointer inline-block">
-                                                    ✍️ Start Exam
-                                                </a>
+                                                @if($task->is_test)
+                                                    <a href="/exam/{{ $task->id }}" class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md shadow-indigo-660/20 active:scale-[0.98] transition cursor-pointer inline-block">
+                                                        ✍️ Start Exam
+                                                    </a>
+                                                @else
+                                                    @if(\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($task->due_date)))
+                                                        <span class="text-xs text-rose-500 font-extrabold bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/25">⏳ Closed (Deadline Over)</span>
+                                                    @else
+                                                        <!-- Assignment Submit Form -->
+                                                        <form action="{{ route('course.tasks.submit', [$course->id, $task->id]) }}" method="POST" enctype="multipart/form-data" class="mt-2 space-y-2 max-w-sm">
+                                                            @csrf
+                                                            <div class="flex flex-col gap-1.5">
+                                                                <input type="file" name="submission_file" required class="bg-slate-950/40 border border-slate-800 rounded-lg py-1 px-2 text-[10px] text-slate-400 file:py-0.5 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+                                                                <textarea name="response_text" placeholder="Write any comments/notes (optional)..." rows="1" class="task-review-textarea w-full bg-slate-950/40 border border-slate-800 rounded-lg py-1 px-2 text-[10px] text-slate-200 placeholder-slate-600 focus:outline-none focus:border-indigo-500 transition"></textarea>
+                                                            </div>
+                                                            <button type="submit" class="w-full bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-1.5 px-3 rounded-lg text-[10px] shadow transition cursor-pointer">
+                                                                Submit Assignment
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
@@ -1259,7 +1371,7 @@
 
             @if(Auth::user()->isTeacher())
                 <!-- TAB CONTENT: PREPARE QUESTION -->
-                <div id="tab-content-prepare-question" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
+                <div id="tab-content-prepare-question" class="tab-pane hidden space-y-6">
 
                     {{-- Published Tests List --}}
                     @if($course->tasks->where('is_test', true)->count() > 0)
@@ -1408,8 +1520,99 @@
                 </div>
                 </div>
 
+                <!-- TAB CONTENT: TEACHER ASSIGNMENTS / HW -->
+                <div id="tab-content-teacher-assignments" class="tab-pane hidden space-y-6">
+                    <!-- Create Assignment Form -->
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
+                        <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-purple-500/10 text-purple-400 flex items-center justify-center text-xs">+</span>
+                            Assign New Homework / Assignment
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Post a new assignment or homework topic. Students will upload their submissions in file format.</p>
+                        
+                        <form action="{{ route('teacher.tasks.create') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <input type="hidden" name="course_id" value="{{ $course->id }}">
+                            <input type="hidden" name="is_test" value="0">
+                            
+                            <div>
+                                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Assignment Topic / Title</label>
+                                <input type="text" name="title" required placeholder="e.g. Essay on Quantum Mechanics" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-purple-500 transition">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Instructions / Description</label>
+                                <textarea name="description" rows="3" placeholder="Provide topic details, questions, guidelines, and instructions..." class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-purple-500 transition"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Max Marks (Points)</label>
+                                    <input type="number" name="points" required min="1" value="100" class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-purple-500 transition">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Submission Deadline</label>
+                                    <input type="date" name="due_date" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-200 focus:outline-none focus:border-purple-500 transition">
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] py-2 px-6 rounded-xl shadow-md transition cursor-pointer">
+                                    Publish Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Published Assignments List -->
+                    <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg space-y-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-base">📋</span>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Current Assignments</h3>
+                                <p class="text-[11px] text-slate-400">View and manage deadlines of published homeworks/assignments.</p>
+                            </div>
+                        </div>
+
+                        @php
+                            $assignments = $course->tasks->where('is_test', false)->sortByDesc('created_at');
+                        @endphp
+
+                        @if($assignments->count() === 0)
+                            <div class="text-center py-8 text-slate-500 italic text-xs">
+                                No assignments published yet. Use the form above to assign homework.
+                            </div>
+                        @else
+                            <div class="space-y-3">
+                                @foreach($assignments as $assignment)
+                                    <div class="workspace-task-card bg-slate-900/60 rounded-xl p-4 border border-slate-850 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div class="flex-grow">
+                                            <h4 class="text-xs font-bold text-slate-200">{{ $assignment->title }}</h4>
+                                            <p class="text-[11px] text-slate-400 mt-1">{{ Str::limit($assignment->description ?: 'No instructions provided.', 120) }}</p>
+                                            <div class="flex flex-wrap gap-3 mt-2.5 text-[9px] text-slate-500">
+                                                <span>Marks: <strong class="text-slate-400">{{ $assignment->points }} pts</strong></span>
+                                                <span>Submissions: <strong class="text-slate-400">{{ $assignment->submissions->count() }}</strong></span>
+                                                <span>Deadline: <strong class="text-slate-400">{{ $assignment->due_date ? \Carbon\Carbon::parse($assignment->due_date)->format('M d, Y - H:i') : '—' }}</strong></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Extend Deadline form -->
+                                        <div class="flex-shrink-0 bg-slate-950/20 p-2.5 rounded-lg border border-slate-850/60 max-w-xs">
+                                            <label class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider mb-1">Extend Deadline</label>
+                                            <form action="{{ route('teacher.tasks.update', $assignment->id) }}" method="POST" class="flex gap-1.5">
+                                                @csrf
+                                                <input type="date" name="due_date" value="{{ $assignment->due_date ? \Carbon\Carbon::parse($assignment->due_date)->format('Y-m-d') : '' }}" required class="task-review-textarea bg-slate-950/40 border border-slate-800 rounded-lg py-1 px-2 text-[10px] text-slate-200 focus:outline-none focus:border-purple-500 transition">
+                                                <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-[9px] py-1.5 px-3 rounded-lg shadow-sm transition cursor-pointer">
+                                                    Extend
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- TAB CONTENT: EVALUATE SUBMISSIONS -->
-                <div id="tab-content-evaluations" class="tab-pane hidden space-y-6 max-w-3xl mx-auto">
+                <div id="tab-content-evaluations" class="tab-pane hidden space-y-6">
                     <div class="glass-panel rounded-2xl p-6 border border-slate-800/80 shadow-lg">
                         <div class="mb-6">
                             <h2 class="text-base font-bold text-white">Student Submission Evaluation Console</h2>
@@ -1915,6 +2118,52 @@
                     }
                 })
                 .catch(err => console.error(err));
+            }
+
+            function toggleLikeNoteAjax(noteId, url) {
+                const btn = document.querySelector(`.like-btn-note-${noteId}`);
+                if (!btn) return;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                    || document.querySelector('input[name="_token"]')?.value;
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        const textSpan = btn.querySelector('.like-text');
+                        const countSpan = btn.querySelector('.like-count');
+                        
+                        if (data.liked) {
+                            btn.classList.add('liked-active');
+                            textSpan.textContent = 'Liked';
+                        } else {
+                            btn.classList.remove('liked-active');
+                            textSpan.textContent = 'Like';
+                        }
+                        
+                        countSpan.textContent = data.count;
+                        if (data.count > 0) {
+                            countSpan.classList.remove('hidden');
+                        } else {
+                            countSpan.classList.add('hidden');
+                        }
+                    }
+                })
+                .catch(err => console.error(err));
+            }
+
+            function toggleNoteCommentsSection(noteId) {
+                const section = document.getElementById(`note-comments-section-${noteId}`);
+                if (section) {
+                    section.classList.toggle('hidden');
+                }
             }
 
             // Dynamic Question Builder JS

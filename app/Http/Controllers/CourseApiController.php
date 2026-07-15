@@ -330,6 +330,7 @@ class CourseApiController extends Controller
             'lectures.rootComments.replies.user',
             'notes.user',
             'notes.comments.user',
+            'notes.likes',
             'questions.user',
             'questions.answers.user',
             'tasks.submissions.user',
@@ -530,6 +531,10 @@ class CourseApiController extends Controller
             'submission_file' => 'nullable|file|max:20480', // Max 20MB file
         ]);
 
+        if ($task->due_date && \Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($task->due_date))) {
+            return redirect()->back()->with('error', 'The submission deadline for this assignment has passed.');
+        }
+
         $submission = TaskSubmission::firstOrNew([
             'user_id' => $user->id,
             'task_id' => $task->id,
@@ -588,6 +593,7 @@ class CourseApiController extends Controller
         ]);
 
         \App\Models\Activity::log('grade_review_request', "Requested grade review for: {$submission->task->title} in {$course->title}");
+        \App\Models\Activity::log('grade_review_request', "Student {$user->name} requested a grade review for: {$submission->task->title} in {$course->title}", $course->instructor_id);
 
         return redirect()->back()->with('success', 'Grade review request submitted to teacher successfully.');
     }
@@ -661,6 +667,55 @@ class CourseApiController extends Controller
 
         $comment->delete();
         Activity::log('lecture_comment_delete', "Deleted comment/reply on lecture '{$lecture->name}' in {$course->title}");
+
+        return redirect()->back()->with('success', 'Comment deleted successfully.');
+    }
+
+    /**
+     * Like/Unlike a shared note.
+     */
+    public function likeNote(Course $course, CourseNote $note)
+    {
+        $userId = Auth::id();
+        $like = \App\Models\CourseNoteLike::where('course_note_id', $note->id)
+            ->where('user_id', $userId)
+            ->first();
+
+        if ($like) {
+            $like->delete();
+            Activity::log('note_unlike', "Unliked note '{$note->title}' in {$course->title}");
+            $liked = false;
+        } else {
+            \App\Models\CourseNoteLike::create([
+                'course_note_id' => $note->id,
+                'user_id' => $userId,
+            ]);
+            Activity::log('note_like', "Liked note '{$note->title}' in {$course->title}");
+            $liked = true;
+        }
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'liked' => $liked,
+                'count' => $note->likes()->count(),
+            ]);
+        }
+
+        return redirect()->back();
+    }
+
+    /**
+     * Delete a note comment.
+     */
+    public function deleteNoteComment(Course $course, CourseNote $note, \App\Models\CourseNoteComment $comment)
+    {
+        if (Auth::id() !== $comment->user_id && !Auth::user()->isTeacher()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $comment->delete();
+        Activity::log('note_comment_delete', "Deleted comment on note '{$note->title}' in {$course->title}");
 
         return redirect()->back()->with('success', 'Comment deleted successfully.');
     }

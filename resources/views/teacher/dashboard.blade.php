@@ -338,7 +338,7 @@
             </div>
 
             <!-- Stats Bar -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
                     <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">My Courses</span>
                     <span class="text-3xl font-extrabold text-white">{{ $courses->count() }}</span>
@@ -346,10 +346,6 @@
                 <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
                     <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">Students Enrolled</span>
                     <span class="text-3xl font-extrabold text-white">{{ $courses->sum('enrolled_users_count') }}</span>
-                </div>
-                <div class="glass-panel rounded-2xl p-5 shadow-md border border-slate-800/80">
-                    <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">Pending Evaluations</span>
-                    <span class="text-3xl font-extrabold text-amber-400">{{ $submissions->whereNull('score')->count() }}</span>
                 </div>
             </div>
 
