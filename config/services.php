@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_API_KEY'),
+    ],
+
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
+    'google_meet' => [
+        'key' => env('GOOGLE_MEET_API_KEY'),
+    ],
+
 ];
