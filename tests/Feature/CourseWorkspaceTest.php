@@ -702,4 +702,59 @@ class CourseWorkspaceTest extends TestCase
             'id' => $comment->id,
         ]);
     }
+
+    /**
+     * Test that when a teacher creates a task, enrolled students get a notification.
+     */
+    public function test_teacher_assigns_homework_notifies_students()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $response = $this->actingAs($this->teacher)
+            ->post(route('teacher.tasks.create'), [
+                'course_id' => $this->course->id,
+                'title' => 'Biology Assignment 1',
+                'description' => 'Write a short summary of photosynthesis.',
+                'due_date' => now()->addDays(2)->format('Y-m-d'),
+                'points' => 50,
+            ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $student->id,
+            'type' => 'notification',
+            'description' => "New Assignment: Biology Assignment 1 has been posted in {$this->course->title}",
+        ]);
+    }
+
+    /**
+     * Test that when a student submits an assignment, the teacher gets a notification.
+     */
+    public function test_student_submits_assignment_notifies_teacher()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+        $student->courses()->attach($this->course->id);
+
+        $task = \App\Models\Task::create([
+            'course_id' => $this->course->id,
+            'title' => 'Chemistry Lab HW',
+            'points' => 30,
+            'due_date' => now()->addDays(5),
+        ]);
+
+        $response = $this->actingAs($student)
+            ->post(route('course.tasks.submit', [$this->course->id, $task->id]), [
+                'response_text' => 'My submission text here.',
+            ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $this->teacher->id,
+            'type' => 'notification',
+            'description' => "Student {$student->name} submitted assignment: Chemistry Lab HW in {$this->course->title}",
+        ]);
+    }
 }

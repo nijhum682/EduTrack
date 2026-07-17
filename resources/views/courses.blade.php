@@ -68,15 +68,15 @@
                 color: #475569 !important;
             }
             body.theme-space-light .glass-card {
-                background: rgba(255, 255, 255, 0.55) !important;
+                background: #edf1f7 !important;
                 backdrop-filter: blur(16px) !important;
                 -webkit-backdrop-filter: blur(16px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.08) !important;
+                border: 1px solid #cbd5e1 !important;
                 box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04) !important;
             }
             body.theme-space-light header {
-                background-color: rgba(255, 255, 255, 0.45) !important;
-                border-color: rgba(15, 23, 42, 0.08) !important;
+                background-color: #e2e8f0 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light #theme-toggle {
                 background: rgba(255, 255, 255, 0.6) !important;
@@ -86,6 +86,16 @@
             body.theme-space-light #theme-toggle:hover {
                 background: rgba(15, 23, 42, 0.05) !important;
                 color: #0f172a !important;
+            }
+            body.theme-space-light .bg-sky-500,
+            body.theme-space-light a.bg-sky-500 {
+                background-color: #38bdf8 !important;
+                color: #ffffff !important;
+            }
+            body.theme-space-light .bg-sky-500:hover,
+            body.theme-space-light a.bg-sky-500:hover {
+                background-color: #0ea5e9 !important;
+                color: #ffffff !important;
             }
 
             /* Dark theme overrides */
@@ -249,7 +259,7 @@
                                         Go to Dashboard
                                     </a>
                                 @else
-                                    <a href="{{ route('login') }}" class="flex items-center px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition justify-center bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 w-full">
+                                    <a href="{{ route('login') }}" class="flex items-center px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition justify-center bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/20 w-full">
                                         Enroll Now
                                     </a>
                                 @endauth

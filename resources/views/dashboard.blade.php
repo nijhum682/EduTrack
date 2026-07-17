@@ -78,23 +78,32 @@
                 color: #64748b !important;
             }
             body.theme-space-light .glass-panel {
-                background: rgba(255, 255, 255, 0.55) !important;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(243, 244, 255, 0.88) 100%) !important;
                 backdrop-filter: blur(16px) !important;
                 -webkit-backdrop-filter: blur(16px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.08) !important;
-                box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04) !important;
+                border: 1px solid rgba(139, 92, 246, 0.12) !important;
+                box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.08), 0 4px 12px -2px rgba(99, 102, 241, 0.03) !important;
             }
             body.theme-space-light .glass-card {
-                background: rgba(255, 255, 255, 0.6) !important;
-                backdrop-filter: blur(8px) !important;
-                -webkit-backdrop-filter: blur(8px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.06) !important;
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(240, 242, 255, 0.82) 100%) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid rgba(139, 92, 246, 0.1) !important;
+                box-shadow: 0 8px 24px -8px rgba(139, 92, 246, 0.06) !important;
             }
             body.theme-space-light input,
             body.theme-space-light select {
-                background: rgba(255, 255, 255, 0.75) !important;
-                border-color: rgba(15, 23, 42, 0.12) !important;
+                background-color: rgba(245, 243, 255, 0.7) !important;
+                border-color: rgba(167, 139, 250, 0.3) !important;
                 color: #0f172a !important;
+                box-shadow: inset 0 2px 4px rgba(109, 40, 217, 0.03), 0 4px 12px rgba(139, 92, 246, 0.02) !important;
+                transition: all 0.2s ease-in-out !important;
+            }
+            body.theme-space-light input:focus,
+            body.theme-space-light select:focus {
+                background-color: #ffffff !important;
+                border-color: #8b5cf6 !important;
+                box-shadow: inset 0 2px 4px rgba(139, 92, 246, 0.05), 0 4px 16px rgba(139, 92, 246, 0.08) !important;
             }
             body.theme-space-light input::placeholder {
                 color: #94a3b8 !important;
@@ -116,30 +125,36 @@
                 background: rgba(15, 23, 42, 0.05) !important;
                 color: #0f172a !important;
             }
-            body.theme-space-light .bg-slate-950\/30 {
-                background-color: rgba(255, 255, 255, 0.4) !important;
+            body.theme-space-light .bg-slate-950\/30,
+            body.theme-space-light .bg-slate-950\/40,
+            body.theme-space-light .bg-slate-900\/60,
+            body.theme-space-light .bg-slate-900\/10,
+            body.theme-space-light .bg-slate-950\/20,
+            body.theme-space-light .bg-slate-900\/30 {
+                background-color: #edf1f7 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .bg-slate-900\/50 {
-                background-color: rgba(255, 255, 255, 0.5) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-800\/50 {
-                background-color: rgba(255, 255, 255, 0.45) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-900\/40 {
-                background-color: rgba(241, 245, 249, 0.95) !important;
+                background-color: #f1f5f9 !important;
             }
             body.theme-space-light .bg-slate-950 {
-                background-color: rgba(255, 255, 255, 0.7) !important;
+                background-color: #e2e8f0 !important;
             }
             body.theme-space-light .bg-slate-900 {
-                background-color: rgba(255, 255, 255, 0.6) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-800 {
                 background-color: rgba(15, 23, 42, 0.06) !important;
             }
             body.theme-space-light header {
-                background-color: rgba(255, 255, 255, 0.45) !important;
-                border-color: rgba(15, 23, 42, 0.08) !important;
+                background-color: #e2e8f0 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .welcome-banner {
                 background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%) !important;
@@ -153,6 +168,55 @@
             }
             body.theme-space-light .welcome-banner span.inline-block {
                 background-color: #4f46e5 !important;
+                color: #ffffff !important;
+            }
+            body.theme-space-light button,
+            body.theme-space-light input[type="submit"],
+            body.theme-space-light a.bg-indigo-600,
+            body.theme-space-light a.bg-indigo-650,
+            body.theme-space-light a.bg-purple-600 {
+                color: #000000 !important;
+                background: #ffffff !important;
+                background-image: none !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            body.theme-space-light button:hover,
+            body.theme-space-light input[type="submit"]:hover,
+            body.theme-space-light a.bg-indigo-600:hover,
+            body.theme-space-light a.bg-indigo-650:hover,
+            body.theme-space-light a.bg-purple-600:hover {
+                color: #000000 !important;
+                background: #f1f5f9 !important;
+            }
+
+            /* Light-blue Enroll Now button in light theme */
+            body.theme-space-light button.bg-sky-500,
+            body.theme-space-light button.enroll-action-btn:not(:disabled),
+            body.theme-space-light .enroll-action-btn:not(:disabled) {
+                background-color: #38bdf8 !important;
+                color: #ffffff !important;
+                border: 1px solid rgba(56, 189, 248, 0.2) !important;
+                box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25) !important;
+            }
+            body.theme-space-light button.bg-sky-500:hover,
+            body.theme-space-light button.enroll-action-btn:not(:disabled):hover,
+            body.theme-space-light .enroll-action-btn:not(:disabled):hover {
+                background-color: #0ea5e9 !important;
+                color: #ffffff !important;
+            }
+
+            /* Pink status badges and See Class button in light theme */
+            body.theme-space-light .status-badge,
+            body.theme-space-light a.bg-pink-600,
+            body.theme-space-light button.bg-pink-600 {
+                background-color: #ec4899 !important; /* pink-500 */
+                color: #ffffff !important;
+                border: 1px solid rgba(236, 72, 153, 0.2) !important;
+            }
+            body.theme-space-light .status-badge:hover,
+            body.theme-space-light a.bg-pink-600:hover,
+            body.theme-space-light button.bg-pink-600:hover {
+                background-color: #db2777 !important; /* pink-600 */
                 color: #ffffff !important;
             }
 
@@ -214,6 +278,97 @@
             }
             ::-webkit-scrollbar-thumb:hover {
                 background: rgba(99, 102, 241, 0.4);
+            }
+            body.theme-space-light .text-purple-300,
+            body.theme-space-light .text-purple-400,
+            body.theme-space-light .text-purple-500 {
+                color: #6d28d9 !important;
+            }
+            body.theme-space-light .text-indigo-300,
+            body.theme-space-light .text-indigo-400,
+            body.theme-space-light .text-indigo-500 {
+                color: #4338ca !important;
+            }
+            body.theme-space-light .text-emerald-300,
+            body.theme-space-light .text-emerald-400,
+            body.theme-space-light .text-emerald-500 {
+                color: #047857 !important;
+            }
+            body.theme-space-light .text-rose-300,
+            body.theme-space-light .text-rose-400,
+            body.theme-space-light .text-rose-50 {
+                color: #be123c !important;
+            }
+            body.theme-space-light .text-amber-300,
+            body.theme-space-light .text-amber-400,
+            body.theme-space-light .text-amber-500 {
+                color: #b45309 !important;
+            }
+            body.theme-space-light .bg-purple-500\/10,
+            body.theme-space-light .bg-purple-500\/20,
+            body.theme-space-light .bg-purple-50 {
+                background-color: rgba(139, 92, 246, 0.12) !important;
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+            body.theme-space-light .bg-indigo-500\/10,
+            body.theme-space-light .bg-indigo-500\/20,
+            body.theme-space-light .bg-indigo-50 {
+                background-color: rgba(99, 102, 241, 0.12) !important;
+                border-color: rgba(99, 102, 241, 0.3) !important;
+            }
+            body.theme-space-light .bg-emerald-500\/10,
+            body.theme-space-light .bg-emerald-500\/20,
+            body.theme-space-light .bg-emerald-50 {
+                background-color: rgba(16, 185, 129, 0.12) !important;
+                border-color: rgba(16, 185, 129, 0.3) !important;
+            }
+            body.theme-space-light .bg-rose-500\/10,
+            body.theme-space-light .bg-rose-500\/20,
+            body.theme-space-light .bg-rose-50 {
+                background-color: rgba(244, 63, 94, 0.12) !important;
+                border-color: rgba(244, 63, 94, 0.3) !important;
+            }
+            body.theme-space-light .bg-amber-500\/10,
+            body.theme-space-light .bg-amber-500\/20,
+            body.theme-space-light .bg-amber-50 {
+                background-color: rgba(245, 158, 11, 0.12) !important;
+                border-color: rgba(245, 158, 11, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-purple-300,
+            body.theme-space-light .dark\:text-purple-400 {
+                color: #6d28d9 !important;
+            }
+            body.theme-space-light .dark\:bg-purple-950\/40,
+            body.theme-space-light .dark\:bg-purple-900\/50 {
+                background-color: rgba(139, 92, 246, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-purple-800\/60,
+            body.theme-space-light .dark\:border-purple-850 {
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-indigo-300,
+            body.theme-space-light .dark\:text-indigo-400 {
+                color: #4338ca !important;
+            }
+            body.theme-space-light .dark\:bg-indigo-950\/40,
+            body.theme-space-light .dark\:bg-indigo-900\/50 {
+                background-color: rgba(99, 102, 241, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-indigo-800\/60,
+            body.theme-space-light .dark\:border-indigo-850 {
+                border-color: rgba(99, 102, 241, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-emerald-300,
+            body.theme-space-light .dark\:text-emerald-400 {
+                color: #047857 !important;
+            }
+            body.theme-space-light .dark\:bg-emerald-950\/40,
+            body.theme-space-light .dark\:bg-emerald-900\/50 {
+                background-color: rgba(16, 185, 129, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-emerald-800\/60,
+            body.theme-space-light .dark\:border-emerald-850 {
+                border-color: rgba(16, 185, 129, 0.3) !important;
             }
         </style>
     </head>
@@ -560,7 +715,7 @@
                                 action = 'unenroll';
                             }
                         } else {
-                            btnClass = 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 w-full justify-center';
+                            btnClass = 'bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/20 w-full justify-center';
                             btnText = 'Enroll Now';
                             action = 'enroll';
                         }

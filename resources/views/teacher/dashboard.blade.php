@@ -77,24 +77,34 @@
                 color: #475569 !important;
             }
             body.theme-space-light .glass-panel {
-                background: rgba(255, 255, 255, 0.55) !important;
+                background: #e2e8f0 !important;
                 backdrop-filter: blur(16px) !important;
                 -webkit-backdrop-filter: blur(16px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.08) !important;
-                box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04) !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
             }
             body.theme-space-light .glass-card {
-                background: rgba(255, 255, 255, 0.6) !important;
-                backdrop-filter: blur(8px) !important;
-                -webkit-backdrop-filter: blur(8px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.06) !important;
+                background: #edf1f7 !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.06) !important;
             }
             body.theme-space-light input,
             body.theme-space-light select,
             body.theme-space-light textarea {
-                background: rgba(255, 255, 255, 0.75) !important;
-                border-color: rgba(15, 23, 42, 0.12) !important;
+                background-color: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
                 color: #0f172a !important;
+                box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.02) !important;
+                transition: all 0.2s ease-in-out !important;
+            }
+            body.theme-space-light input:focus,
+            body.theme-space-light select:focus,
+            body.theme-space-light textarea:focus {
+                background-color: #edf2f7 !important;
+                border-color: #8b5cf6 !important;
+                box-shadow: inset 0 2px 4px rgba(139, 92, 246, 0.05), 0 4px 16px rgba(139, 92, 246, 0.08) !important;
             }
             body.theme-space-light input::placeholder,
             body.theme-space-light textarea::placeholder {
@@ -116,32 +126,32 @@
                 color: #0f172a !important;
             }
             body.theme-space-light .bg-slate-950\/30 {
-                background-color: rgba(255, 255, 255, 0.4) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-950\/40 {
                 background-color: rgba(15, 23, 42, 0.05) !important;
             }
             body.theme-space-light .bg-slate-900\/50 {
-                background-color: rgba(255, 255, 255, 0.5) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-800\/50 {
-                background-color: rgba(255, 255, 255, 0.45) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-900\/40 {
-                background-color: rgba(241, 245, 249, 0.95) !important;
+                background-color: #f1f5f9 !important;
             }
             body.theme-space-light .bg-slate-950 {
-                background-color: rgba(255, 255, 255, 0.7) !important;
+                background-color: #e2e8f0 !important;
             }
             body.theme-space-light .bg-slate-900 {
-                background-color: rgba(255, 255, 255, 0.6) !important;
+                background-color: #edf1f7 !important;
             }
             body.theme-space-light .bg-slate-800 {
                 background-color: rgba(15, 23, 42, 0.06) !important;
             }
             body.theme-space-light header {
-                background-color: rgba(255, 255, 255, 0.45) !important;
-                border-color: rgba(15, 23, 42, 0.08) !important;
+                background-color: #e2e8f0 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .welcome-banner {
                 background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(236, 72, 153, 0.12) 100%) !important;
@@ -244,6 +254,22 @@
                 background-color: rgba(139, 92, 246, 0.2);
                 color: #c084fc;
                 border-color: rgba(139, 92, 246, 0.4);
+            }
+
+            /* Light-blue Enroll Now button in light theme */
+            body.theme-space-light button.bg-sky-500,
+            body.theme-space-light button.enroll-action-btn:not(:disabled),
+            body.theme-space-light .enroll-action-btn:not(:disabled) {
+                background-color: #38bdf8 !important;
+                color: #ffffff !important;
+                border: 1px solid rgba(56, 189, 248, 0.2) !important;
+                box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25) !important;
+            }
+            body.theme-space-light button.bg-sky-500:hover,
+            body.theme-space-light button.enroll-action-btn:not(:disabled):hover,
+            body.theme-space-light .enroll-action-btn:not(:disabled):hover {
+                background-color: #0ea5e9 !important;
+                color: #ffffff !important;
             }
         </style>
     </head>
@@ -579,7 +605,7 @@
                                 action = 'unenroll';
                             }
                         } else {
-                            btnClass = 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20 w-full justify-center';
+                            btnClass = 'bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/20 w-full justify-center';
                             btnText = 'Enroll Now';
                             action = 'enroll';
                         }

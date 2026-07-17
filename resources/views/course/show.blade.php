@@ -77,24 +77,34 @@
                 color: #475569 !important;
             }
             body.theme-space-light .glass-panel {
-                background: rgba(255, 255, 255, 0.55) !important;
+                background: #e2e8f0 !important;
                 backdrop-filter: blur(16px) !important;
                 -webkit-backdrop-filter: blur(16px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.08) !important;
-                box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.04) !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.03) !important;
             }
             body.theme-space-light .glass-card {
-                background: rgba(255, 255, 255, 0.6) !important;
-                backdrop-filter: blur(8px) !important;
-                -webkit-backdrop-filter: blur(8px) !important;
-                border: 1px solid rgba(15, 23, 42, 0.06) !important;
+                background: #edf1f7 !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 8px 24px -8px rgba(15, 23, 42, 0.06) !important;
             }
             body.theme-space-light input,
             body.theme-space-light select,
             body.theme-space-light textarea {
-                background: rgba(255, 255, 255, 0.75) !important;
-                border-color: rgba(15, 23, 42, 0.12) !important;
+                background-color: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
                 color: #0f172a !important;
+                box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.02) !important;
+                transition: all 0.2s ease-in-out !important;
+            }
+            body.theme-space-light input:focus,
+            body.theme-space-light select:focus,
+            body.theme-space-light textarea:focus {
+                background-color: #edf2f7 !important;
+                border-color: #8b5cf6 !important;
+                box-shadow: inset 0 2px 4px rgba(139, 92, 246, 0.05), 0 4px 16px rgba(139, 92, 246, 0.08) !important;
             }
             body.theme-space-light input::placeholder,
             body.theme-space-light textarea::placeholder {
@@ -114,8 +124,15 @@
             body.theme-space-light #theme-toggle:hover {
                 background: rgba(15, 23, 42, 0.08) !important;
             }
-            body.theme-space-light .bg-slate-950\/30 {
-                background-color: rgba(15, 23, 42, 0.03) !important;
+            body.theme-space-light .bg-slate-950\/30,
+            body.theme-space-light .bg-slate-950\/40,
+            body.theme-space-light .bg-slate-900\/60,
+            body.theme-space-light .bg-slate-900\/10,
+            body.theme-space-light .bg-slate-955\/40,
+            body.theme-space-light .bg-slate-950\/20,
+            body.theme-space-light .bg-slate-900\/30 {
+                background-color: #edf1f7 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .bg-slate-900\/50 {
                 background-color: rgba(15, 23, 42, 0.04) !important;
@@ -133,8 +150,8 @@
                 background-color: #cbd5e1 !important;
             }
             body.theme-space-light header {
-                background-color: rgba(255, 255, 255, 0.5) !important;
-                border-color: rgba(15, 23, 42, 0.08) !important;
+                background-color: #e2e8f0 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .welcome-banner {
                 background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%) !important;
@@ -156,8 +173,8 @@
                 border-color: rgba(79, 70, 229, 0.2) !important;
             }
             body.theme-space-light .instructor-card {
-                background-color: rgba(255, 255, 255, 0.6) !important;
-                border-color: rgba(99, 102, 241, 0.15) !important;
+                background-color: #edf1f7 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .instructor-card .instructor-label {
                 color: #64748b !important;
@@ -173,9 +190,35 @@
             body.theme-space-light button,
             body.theme-space-light input[type="submit"],
             body.theme-space-light .btn-text-white,
-            body.theme-space-light .status-badge,
             body.theme-space-light a.bg-indigo-600,
-            body.theme-space-light a.bg-indigo-650 {
+            body.theme-space-light a.bg-indigo-650,
+            body.theme-space-light a.bg-purple-600 {
+                color: #000000 !important;
+                background: #ffffff !important;
+                background-image: none !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+            body.theme-space-light button:hover,
+            body.theme-space-light input[type="submit"]:hover,
+            body.theme-space-light a.bg-indigo-600:hover,
+            body.theme-space-light a.bg-indigo-650:hover,
+            body.theme-space-light a.bg-purple-600:hover {
+                color: #000000 !important;
+                background: #f1f5f9 !important;
+            }
+
+            /* Pink status badges and See Class button in light theme */
+            body.theme-space-light .status-badge,
+            body.theme-space-light a.bg-pink-600,
+            body.theme-space-light button.bg-pink-600 {
+                background-color: #ec4899 !important; /* pink-500 */
+                color: #ffffff !important;
+                border: 1px solid rgba(236, 72, 153, 0.2) !important;
+            }
+            body.theme-space-light .status-badge:hover,
+            body.theme-space-light a.bg-pink-600:hover,
+            body.theme-space-light button.bg-pink-600:hover {
+                background-color: #db2777 !important; /* pink-600 */
                 color: #ffffff !important;
             }
 
@@ -250,19 +293,22 @@
             }
 
             /* Light theme comment overrides */
-            body.theme-space-light .lecture-comment-card {
-                background-color: #ffffff !important;
+            body.theme-space-light .lecture-comment-card,
+            body.theme-space-light .note-comment-card {
+                background-color: #edf1f7 !important;
                 border-color: #cbd5e1 !important;
                 color: #0f172a !important;
             }
-            body.theme-space-light .lecture-comment-card strong {
+            body.theme-space-light .lecture-comment-card strong,
+            body.theme-space-light .note-comment-card strong {
                 color: #0f172a !important;
             }
-            body.theme-space-light .lecture-comment-card p {
+            body.theme-space-light .lecture-comment-card p,
+            body.theme-space-light .note-comment-card p {
                 color: #0f172a !important;
             }
             body.theme-space-light .lecture-reply-card {
-                background-color: #f8fafc !important;
+                background-color: #f1f5f9 !important;
                 border-color: #cbd5e1 !important;
                 color: #334155 !important;
             }
@@ -398,8 +444,8 @@
 
             /* Student Workspace Assignment and Results Overrides */
             body.theme-space-light .workspace-task-card {
-                background: rgba(255, 255, 255, 0.6) !important;
-                border-color: rgba(15, 23, 42, 0.08) !important;
+                background: #edf1f7 !important;
+                border-color: #cbd5e1 !important;
                 box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02) !important;
             }
             body.theme-space-light .workspace-task-card h4,
@@ -421,8 +467,8 @@
                 opacity: 0.95 !important;
             }
             body.theme-space-light .task-feedback-box {
-                background: rgba(15, 23, 42, 0.03) !important;
-                border-color: rgba(15, 23, 42, 0.06) !important;
+                background: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
             }
             body.theme-space-light .task-feedback-box p.text-slate-300 {
                 color: #1e293b !important;
@@ -433,9 +479,149 @@
                 border-color: rgba(15, 23, 42, 0.12) !important;
                 color: #0f172a !important;
             }
-            body.theme-space-light .task-review-textarea::placeholder {
-                color: #94a3b8 !important;
-                opacity: 0.8 !important;
+            body.theme-space-light .qa-question-card {
+                background-color: rgba(255, 255, 255, 0.6) !important;
+                border-color: rgba(15, 23, 42, 0.08) !important;
+            }
+            body.theme-space-light .qa-question-card h3,
+            body.theme-space-light .qa-question-card span,
+            body.theme-space-light .qa-question-card p {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .qa-reply-card {
+                background-color: rgba(255, 255, 255, 0.9) !important;
+                border-color: rgba(15, 23, 42, 0.08) !important;
+            }
+            body.theme-space-light .qa-reply-card span,
+            body.theme-space-light .qa-reply-card p {
+                color: #0f172a !important;
+            }
+            body.theme-space-light .bg-emerald-950\/40 {
+                background-color: rgba(16, 185, 129, 0.08) !important;
+                border-color: rgba(16, 185, 129, 0.25) !important;
+                color: #065f46 !important;
+            }
+            body.theme-space-light .bg-emerald-950\/40 span,
+            body.theme-space-light .bg-emerald-950\/40 p {
+                color: #065f46 !important;
+            }
+            body.theme-space-light .bg-amber-950\/40 {
+                background-color: rgba(245, 158, 11, 0.08) !important;
+                border-color: rgba(245, 158, 11, 0.25) !important;
+                color: #92400e !important;
+            }
+            body.theme-space-light .bg-amber-950\/40 span,
+            body.theme-space-light .bg-amber-950\/40 p {
+                color: #92400e !important;
+            }
+            body.theme-space-light #toast-success {
+                background-color: rgba(16, 185, 129, 0.08) !important;
+                border-color: rgba(16, 185, 129, 0.25) !important;
+                color: #065f46 !important;
+            }
+            body.theme-space-light #toast-success span,
+            body.theme-space-light #toast-success button {
+                color: #065f46 !important;
+            }
+            body.theme-space-light #toast-error {
+                background-color: rgba(244, 63, 94, 0.08) !important;
+                border-color: rgba(244, 63, 94, 0.25) !important;
+                color: #9f1239 !important;
+            }
+            body.theme-space-light #toast-error span,
+            body.theme-space-light #toast-error button {
+                color: #9f1239 !important;
+            }
+            body.theme-space-light .text-purple-300,
+            body.theme-space-light .text-purple-400,
+            body.theme-space-light .text-purple-500 {
+                color: #6d28d9 !important;
+            }
+            body.theme-space-light .text-indigo-300,
+            body.theme-space-light .text-indigo-400,
+            body.theme-space-light .text-indigo-500 {
+                color: #4338ca !important;
+            }
+            body.theme-space-light .text-emerald-300,
+            body.theme-space-light .text-emerald-400,
+            body.theme-space-light .text-emerald-500 {
+                color: #047857 !important;
+            }
+            body.theme-space-light .text-rose-300,
+            body.theme-space-light .text-rose-400,
+            body.theme-space-light .text-rose-50 {
+                color: #be123c !important;
+            }
+            body.theme-space-light .text-amber-300,
+            body.theme-space-light .text-amber-400,
+            body.theme-space-light .text-amber-500 {
+                color: #b45309 !important;
+            }
+            body.theme-space-light .bg-purple-500\/10,
+            body.theme-space-light .bg-purple-500\/20,
+            body.theme-space-light .bg-purple-50 {
+                background-color: rgba(139, 92, 246, 0.12) !important;
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+            body.theme-space-light .bg-indigo-500\/10,
+            body.theme-space-light .bg-indigo-500\/20,
+            body.theme-space-light .bg-indigo-50 {
+                background-color: rgba(99, 102, 241, 0.12) !important;
+                border-color: rgba(99, 102, 241, 0.3) !important;
+            }
+            body.theme-space-light .bg-emerald-500\/10,
+            body.theme-space-light .bg-emerald-500\/20,
+            body.theme-space-light .bg-emerald-50 {
+                background-color: rgba(16, 185, 129, 0.12) !important;
+                border-color: rgba(16, 185, 129, 0.3) !important;
+            }
+            body.theme-space-light .bg-rose-500\/10,
+            body.theme-space-light .bg-rose-500\/20,
+            body.theme-space-light .bg-rose-50 {
+                background-color: rgba(244, 63, 94, 0.12) !important;
+                border-color: rgba(244, 63, 94, 0.3) !important;
+            }
+            body.theme-space-light .bg-amber-500\/10,
+            body.theme-space-light .bg-amber-500\/20,
+            body.theme-space-light .bg-amber-50 {
+                background-color: rgba(245, 158, 11, 0.12) !important;
+                border-color: rgba(245, 158, 11, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-purple-300,
+            body.theme-space-light .dark\:text-purple-400 {
+                color: #6d28d9 !important;
+            }
+            body.theme-space-light .dark\:bg-purple-950\/40,
+            body.theme-space-light .dark\:bg-purple-900\/50 {
+                background-color: rgba(139, 92, 246, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-purple-800\/60,
+            body.theme-space-light .dark\:border-purple-850 {
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-indigo-300,
+            body.theme-space-light .dark\:text-indigo-400 {
+                color: #4338ca !important;
+            }
+            body.theme-space-light .dark\:bg-indigo-950\/40,
+            body.theme-space-light .dark\:bg-indigo-900\/50 {
+                background-color: rgba(99, 102, 241, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-indigo-800\/60,
+            body.theme-space-light .dark\:border-indigo-850 {
+                border-color: rgba(99, 102, 241, 0.3) !important;
+            }
+            body.theme-space-light .dark\:text-emerald-300,
+            body.theme-space-light .dark\:text-emerald-400 {
+                color: #047857 !important;
+            }
+            body.theme-space-light .dark\:bg-emerald-950\/40,
+            body.theme-space-light .dark\:bg-emerald-900\/50 {
+                background-color: rgba(16, 185, 129, 0.12) !important;
+            }
+            body.theme-space-light .dark\:border-emerald-800\/60,
+            body.theme-space-light .dark\:border-emerald-850 {
+                border-color: rgba(16, 185, 129, 0.3) !important;
             }
         </style>
     </head>
@@ -598,7 +784,7 @@
                                     <div class="grid grid-cols-2 gap-3">
                                         <div>
                                             <label class="block text-xs text-slate-400 font-semibold mb-1">Start Time</label>
-                                            <input type="datetime-local" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-pink-500 transition">
+                                            <input type="date" name="scheduled_at" required class="w-full bg-slate-900/60 border border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-400 outline-none focus:border-pink-500 transition">
                                         </div>
                                         <div>
                                             <label class="block text-xs text-slate-400 font-semibold mb-1">Duration (Mins)</label>
@@ -1043,7 +1229,7 @@
                                         @if($note->comments->count() > 0)
                                             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                                                 @foreach($note->comments as $comment)
-                                                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs space-y-1 shadow-sm">
+                                                    <div class="note-comment-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-2.5 text-xs space-y-1 shadow-sm">
                                                         <div class="flex justify-between items-center text-[9px] text-slate-500 dark:text-slate-400">
                                                             <span class="flex items-center gap-1.5">
                                                                 <strong class="font-bold {{ $comment->user->isTeacher() ? 'text-purple-600 dark:text-purple-400' : 'text-slate-900 dark:text-slate-100' }}">{{ $comment->user->name }}</strong>
@@ -1119,7 +1305,7 @@
                     @else
                         <div class="space-y-6">
                             @foreach($course->questions as $question)
-                                <div class="border border-slate-800/70 bg-slate-950/20 rounded-2xl p-5 md:p-6 space-y-4">
+                                <div class="qa-question-card border border-slate-800/70 bg-slate-950/20 rounded-2xl p-5 md:p-6 space-y-4">
                                     
                                     <!-- Student Question Details -->
                                     <div class="flex items-start gap-4">
@@ -1147,7 +1333,7 @@
                                         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Replies ({{ $question->answers->count() }})</h4>
                                         
                                         @foreach($question->answers as $answer)
-                                            <div class="flex items-start gap-3 bg-slate-900/10 border border-slate-800/50 rounded-xl p-3.5">
+                                            <div class="qa-reply-card flex items-start gap-3 bg-slate-900/10 border border-slate-800/50 rounded-xl p-3.5">
                                                 <div class="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold text-xs flex-shrink-0">
                                                     {{ strtoupper(substr($answer->user->name, 0, 1)) }}
                                                 </div>
