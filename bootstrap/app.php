@@ -32,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'teacher' => \App\Http\Middleware\TeacherMiddleware::class,
             'student' => \App\Http\Middleware\StudentMiddleware::class,
             'course.auth' => \App\Http\Middleware\CourseAuthorization::class,
+            'api.keys' => \App\Http\Middleware\EnsureApiKeys::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

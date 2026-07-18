@@ -65,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
 
         // Course Payment Flow
         Route::get('/course/{course}/payment', [App\Http\Controllers\CourseApiController::class, 'showPaymentPage'])->name('course.payment')->middleware('course.auth');
-        Route::post('/course/{course}/payment/complete', [App\Http\Controllers\CourseApiController::class, 'completePayment'])->name('course.payment.complete')->middleware('course.auth');
+        Route::post('/course/{course}/payment/complete', [App\Http\Controllers\CourseApiController::class, 'completePayment'])->name('course.payment.complete')->middleware(['course.auth', 'api.keys']);
 
         // API endpoints for AJAX operations
         Route::post('/api/tasks/{task}/toggle', [App\Http\Controllers\CourseApiController::class, 'toggleTask']);
@@ -84,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/course/{course}/lectures/{lecture}/like', [App\Http\Controllers\CourseApiController::class, 'likeLecture'])->name('course.lectures.like');
         Route::post('/course/{course}/questions', [App\Http\Controllers\CourseApiController::class, 'askQuestion'])->name('course.questions.ask');
         Route::post('/course/{course}/questions/{question}/answers', [App\Http\Controllers\CourseApiController::class, 'replyQuestion'])->name('course.questions.reply');
-        Route::post('/course/{course}/lectures', [App\Http\Controllers\TeacherDashboardController::class, 'createLecture'])->name('teacher.lectures.create');
+        Route::post('/course/{course}/lectures', [App\Http\Controllers\TeacherDashboardController::class, 'createLecture'])->name('teacher.lectures.create')->middleware('api.keys');
         
         // Student assignment submissions
         Route::post('/course/{course}/tasks/{task}/submit', [App\Http\Controllers\CourseApiController::class, 'submitAssignment'])->name('course.tasks.submit')->middleware('student');
@@ -109,7 +109,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/teacher/tasks', [App\Http\Controllers\TeacherDashboardController::class, 'createTask'])->name('teacher.tasks.create');
         Route::post('/teacher/tasks/{task}/update', [App\Http\Controllers\TeacherDashboardController::class, 'updateTask'])->name('teacher.tasks.update');
         Route::post('/teacher/submissions/{submission}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateSubmission'])->name('teacher.submissions.evaluate')->middleware('course.auth');
-        Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create');
+        Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create')->middleware('api.keys');
         Route::post('/teacher/classes/{class}/toggle-active', [App\Http\Controllers\TeacherDashboardController::class, 'toggleClassActive'])->name('teacher.classes.toggle-active');
     });
     
