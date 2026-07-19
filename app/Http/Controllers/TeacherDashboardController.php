@@ -669,6 +669,10 @@ class TeacherDashboardController extends Controller
      */
     public function deleteNote(Course $course, CourseNote $note)
     {
+        if (Auth::id() !== $note->user_id && !Auth::user()->isTeacher()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
         if ($note->file_path && file_exists(public_path($note->file_path))) {
             @unlink(public_path($note->file_path));
         }
@@ -697,5 +701,45 @@ class TeacherDashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Comment posted in classroom!');
+    }
+
+    /**
+     * Delete a scheduled class.
+     */
+    public function deleteClass(ScheduledClass $class)
+    {
+        $course = $class->course;
+        $user = Auth::user();
+        
+        // Authorization check: User must be the teacher/instructor of the course
+        $isOwner = ($course->instructor_id === $user->id) || ($course->instructor === $user->name);
+        if (!$isOwner) {
+            return redirect()->back()->with('error', 'You do not have permission to manage this class.');
+        }
+
+        $class->delete();
+        \App\Models\Activity::log('class_delete', "Deleted scheduled class: {$class->title} in course {$course->title}");
+
+        return redirect()->back()->with('success', 'Scheduled class deleted successfully!');
+    }
+
+    /**
+     * Delete a classroom comment or reply.
+     */
+    public function deleteClassroomComment(ScheduledClass $class, ScheduledClassComment $comment)
+    {
+        // Authorization check: User must be the author of the comment OR the teacher/instructor of the course
+        $course = $class->course;
+        $user = Auth::user();
+        $isOwner = ($course->instructor_id === $user->id) || ($course->instructor === $user->name);
+        
+        if (Auth::id() !== $comment->user_id && !$isOwner) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
+        $comment->delete();
+        \App\Models\Activity::log('classroom_comment_delete', "Deleted classroom comment in {$class->title}");
+
+        return redirect()->back()->with('success', 'Comment deleted successfully.');
     }
 }

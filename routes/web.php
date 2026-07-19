@@ -90,15 +90,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/course/{course}/tasks/{task}/submit', [App\Http\Controllers\CourseApiController::class, 'submitAssignment'])->name('course.tasks.submit')->middleware('student');
         Route::post('/course/{course}/submissions/{submission}/review', [App\Http\Controllers\CourseApiController::class, 'submitReviewRequest'])->name('course.submissions.review')->middleware('student');
 
+        // Shared deletion routes (authorized by owner or instructor in controllers)
+        Route::post('/course/{course}/notes/{note}/delete', [App\Http\Controllers\TeacherDashboardController::class, 'deleteNote'])->name('teacher.notes.delete');
+        Route::post('/course/{course}/questions/{question}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteQuestion'])->name('course.questions.delete');
+        Route::post('/course/{course}/questions/{question}/answers/{answer}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteAnswer'])->name('course.answers.delete');
+        Route::post('/classroom/{class}/comments/{comment}/delete', [App\Http\Controllers\TeacherDashboardController::class, 'deleteClassroomComment'])->name('classroom.comment.delete');
+
         // Teacher editing operations scoped to a course
         Route::middleware(['teacher'])->group(function () {
             Route::post('/course/{course}/update', [App\Http\Controllers\TeacherDashboardController::class, 'updateCourseDetails'])->name('teacher.courses.update');
             Route::post('/course/{course}/lectures/{lecture}/update', [App\Http\Controllers\TeacherDashboardController::class, 'updateLecture'])->name('teacher.lectures.update');
             Route::post('/course/{course}/lectures/{lecture}/delete', [App\Http\Controllers\TeacherDashboardController::class, 'deleteLecture'])->name('teacher.lectures.delete');
             Route::post('/course/{course}/notes/{note}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateNote'])->name('teacher.notes.evaluate');
-            Route::post('/course/{course}/notes/{note}/delete', [App\Http\Controllers\TeacherDashboardController::class, 'deleteNote'])->name('teacher.notes.delete');
-            Route::post('/course/{course}/questions/{question}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteQuestion'])->name('course.questions.delete');
-            Route::post('/course/{course}/questions/{question}/answers/{answer}/delete', [App\Http\Controllers\CourseApiController::class, 'deleteAnswer'])->name('course.answers.delete');
         });
     });
 
@@ -111,6 +114,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/teacher/submissions/{submission}/evaluate', [App\Http\Controllers\TeacherDashboardController::class, 'evaluateSubmission'])->name('teacher.submissions.evaluate')->middleware('course.auth');
         Route::post('/teacher/classes', [App\Http\Controllers\TeacherDashboardController::class, 'scheduleClass'])->name('teacher.classes.create')->middleware('api.keys');
         Route::post('/teacher/classes/{class}/toggle-active', [App\Http\Controllers\TeacherDashboardController::class, 'toggleClassActive'])->name('teacher.classes.toggle-active');
+        Route::post('/teacher/classes/{class}/delete', [App\Http\Controllers\TeacherDashboardController::class, 'deleteClass'])->name('teacher.classes.delete');
     });
     
     // Shared virtual classroom route

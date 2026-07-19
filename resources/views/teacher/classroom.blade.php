@@ -252,6 +252,13 @@
                                     <div class="flex items-center gap-2">
                                         <span class="text-slate-600">{{ $comment->created_at->diffForHumans() }}</span>
                                         <button onclick="setReplyParent({{ $comment->id }}, '{{ $comment->user->name }}')" class="text-pink-400 hover:text-pink-300 font-bold hover:underline cursor-pointer">Reply</button>
+                                        @if(Auth::id() === $comment->user_id || Auth::user()->isTeacher())
+                                            <span class="text-slate-600">&middot;</span>
+                                            <form action="{{ route('classroom.comment.delete', [$class->id, $comment->id]) }}" method="POST" onsubmit="return confirm('Delete this comment?');" class="inline m-0 p-0">
+                                                @csrf
+                                                <button type="submit" class="text-red-400 hover:text-red-300 font-bold hover:underline cursor-pointer">Delete</button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                                 <p class="text-slate-200 font-medium leading-relaxed">{{ $comment->comment_text }}</p>
@@ -268,7 +275,16 @@
                                                             <span class="text-[7px] font-extrabold uppercase border px-1 rounded bg-purple-500/10 text-purple-300 border-purple-500/30">Teacher</span>
                                                         @endif
                                                     </span>
-                                                    <span class="text-slate-600">{{ $reply->created_at->diffForHumans() }}</span>
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-slate-600">{{ $reply->created_at->diffForHumans() }}</span>
+                                                        @if(Auth::id() === $reply->user_id || Auth::user()->isTeacher())
+                                                            <span class="text-slate-600">&middot;</span>
+                                                            <form action="{{ route('classroom.comment.delete', [$class->id, $reply->id]) }}" method="POST" onsubmit="return confirm('Delete this reply?');" class="inline m-0 p-0">
+                                                                @csrf
+                                                                <button type="submit" class="text-red-400 hover:text-red-300 font-bold hover:underline cursor-pointer">Delete</button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                                 <p class="text-slate-300 text-[10px] leading-relaxed">{{ $reply->comment_text }}</p>
                                             </div>

@@ -619,6 +619,10 @@ class CourseApiController extends Controller
      */
     public function deleteQuestion(Course $course, CourseQuestion $question)
     {
+        if (Auth::id() !== $question->user_id && !Auth::user()->isTeacher()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
         if ($question->image_path && file_exists(public_path($question->image_path))) {
             @unlink(public_path($question->image_path));
         }
@@ -631,6 +635,10 @@ class CourseApiController extends Controller
      */
     public function deleteAnswer(Course $course, CourseQuestion $question, CourseAnswer $answer)
     {
+        if (Auth::id() !== $answer->user_id && !Auth::user()->isTeacher()) {
+            return redirect()->back()->with('error', 'Unauthorized action.');
+        }
+
         if ($answer->image_path && file_exists(public_path($answer->image_path))) {
             @unlink(public_path($answer->image_path));
         }

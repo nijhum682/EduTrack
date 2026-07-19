@@ -985,6 +985,12 @@
                                                     ▶ Start Class
                                                 </button>
                                             </form>
+                                            <form action="{{ route('teacher.classes.delete', $class->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this scheduled class?');" class="flex-shrink-0">
+                                                @csrf
+                                                <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/25 hover:border-red-500/45 text-red-400 p-2 rounded-lg text-xs transition cursor-pointer" title="Delete Class">
+                                                    🗑️
+                                                </button>
+                                            </form>
                                         @else
                                             <button disabled class="w-full text-xs bg-slate-800 text-slate-500 font-bold py-2 px-3.5 rounded-lg border border-slate-700/40 cursor-not-allowed">
                                                 ⏳ Waiting for Host to Start
@@ -1029,40 +1035,60 @@
                                             $joinLink = route('classroom', $completedClass->id);
                                         }
                                     @endphp
-                                    @if($joinLink)
-                                        <div class="flex-shrink-0 w-full md:w-auto text-right">
-                                             <a href="{{ $joinLink }}" target="_blank" class="w-full md:w-auto bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl border border-pink-500/20 shadow-md shadow-pink-600/10 transition cursor-pointer inline-block text-center">
+                                    <div class="flex-shrink-0 w-full md:w-auto flex items-center justify-end gap-2">
+                                        @if($joinLink)
+                                             <a href="{{ $joinLink }}" target="_blank" class="bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs py-2.5 px-5 rounded-xl border border-pink-500/20 shadow-md shadow-pink-600/10 transition cursor-pointer inline-block text-center">
                                                  See Class
                                              </a>
-                                        </div>
-                                    @endif
+                                        @endif
+                                        @if(Auth::user()->isTeacher())
+                                            <form action="{{ route('teacher.classes.delete', $completedClass->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this class record?');" class="inline m-0 p-0">
+                                                @csrf
+                                                <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/20 hover:border-red-500/40 text-red-400 p-2.5 rounded-xl text-xs transition cursor-pointer" title="Delete Class Record">
+                                                    🗑️
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
 
                             <!-- Recorded Lectures -->
                             @foreach($course->lectures as $lecture)
                                 <div class="lecture-card border border-slate-800/60 bg-slate-900/10 rounded-xl p-5 space-y-4 transition duration-300">
-                                    <div class="flex flex-col md:flex-row md:items-start gap-4">
-                                        <div class="flex-shrink-0">
-                                            <span class="status-badge px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white uppercase tracking-wider block text-center md:inline-block shadow-sm">
-                                                Recorded
-                                            </span>
-                                        </div>
-                                        <div class="flex-grow space-y-2">
-                                            <h3 class="text-base font-bold text-white"><span class="text-xs font-semibold text-purple-400">[{{ $lecture->lecture_number }}]</span> {{ $lecture->name }}</h3>
-                                            <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ $lecture->details ?: 'No details provided.' }}</p>
-                                            
-                                            @if($lecture->video_path)
-                                                <div class="mt-3 border border-slate-800/85 rounded-xl overflow-hidden bg-slate-950/40">
-                                                    <video controls class="w-full max-h-80 object-contain">
-                                                        <source src="{{ asset($lecture->video_path) }}" type="video/mp4">
-                                                        Your browser does not support the video tag.
-                                                    </video>
-                                                </div>
-                                            @endif
+                                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                        <div class="flex flex-col md:flex-row md:items-start gap-4 flex-grow min-w-0">
+                                            <div class="flex-shrink-0">
+                                                <span class="status-badge px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white uppercase tracking-wider block text-center md:inline-block shadow-sm">
+                                                    Recorded
+                                                </span>
+                                            </div>
+                                            <div class="flex-grow space-y-2 min-w-0">
+                                                <h3 class="text-base font-bold text-white"><span class="text-xs font-semibold text-purple-400">[{{ $lecture->lecture_number }}]</span> {{ $lecture->name }}</h3>
+                                                <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ $lecture->details ?: 'No details provided.' }}</p>
+                                                
+                                                @if($lecture->video_path)
+                                                    <div class="mt-3 border border-slate-800/85 rounded-xl overflow-hidden bg-slate-950/40">
+                                                        <video controls class="w-full max-h-80 object-contain">
+                                                            <source src="{{ asset($lecture->video_path) }}" type="video/mp4">
+                                                            Your browser does not support the video tag.
+                                                        </video>
+                                                    </div>
+                                                @endif
 
-                                            <span class="text-[10px] text-slate-500 block pt-1">Uploaded on {{ $lecture->created_at->format('M d, Y H:i') }}</span>
+                                                <span class="text-[10px] text-slate-500 block pt-1">Uploaded on {{ $lecture->created_at->format('M d, Y H:i') }}</span>
+                                            </div>
                                         </div>
+                                        @if(Auth::user()->isTeacher())
+                                            <div class="flex-shrink-0">
+                                                <form action="{{ route('teacher.lectures.delete', [$course->id, $lecture->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this lecture?');" class="inline m-0 p-0">
+                                                    @csrf
+                                                    <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/20 hover:border-red-500/40 text-red-400 p-2.5 rounded-xl text-xs transition cursor-pointer" title="Delete Lecture">
+                                                        🗑️
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <!-- Facebook-like Action Bar (Like & Comment buttons) -->
@@ -1228,13 +1254,21 @@
                                                 @endif
                                             </div>
                                             <div class="text-[9px] text-slate-500">{{ $note->created_at->diffForHumans() }}</div>
-                                            <div class="pt-2 flex gap-2">
+                                            <div class="pt-2 flex flex-wrap gap-2">
                                                 <a href="{{ asset($note->file_path) }}" target="_blank" class="bg-slate-850 hover:bg-slate-800 text-slate-300 font-bold py-1 px-3 rounded text-[10px] border border-slate-700/60 transition inline-flex items-center gap-1">
                                                     👓 View PDF
                                                 </a>
                                                 <a href="{{ asset($note->file_path) }}" download class="bg-indigo-650 hover:bg-indigo-500 text-white font-bold py-1 px-3 rounded text-[10px] shadow border border-indigo-500/20 transition inline-flex items-center gap-1">
                                                     📥 Download
                                                 </a>
+                                                @if(Auth::id() === $note->user_id || Auth::user()->isTeacher())
+                                                    <form action="{{ route('teacher.notes.delete', [$course->id, $note->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this shared note?');" class="inline m-0 p-0">
+                                                        @csrf
+                                                        <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/20 hover:border-red-500/40 text-red-400 font-bold py-1 px-3 rounded text-[10px] transition cursor-pointer inline-flex items-center gap-1">
+                                                            🗑️ Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
@@ -1355,9 +1389,19 @@
                                             {{ strtoupper(substr($question->user->name, 0, 1)) }}
                                         </div>
                                         <div class="flex-grow space-y-2">
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-bold text-sm text-white">{{ $question->user->name }}</span>
-                                                <span class="text-[10px] text-slate-500">{{ $question->created_at->diffForHumans() }}</span>
+                                            <div class="flex items-center justify-between w-full">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-sm text-white">{{ $question->user->name }}</span>
+                                                    <span class="text-[10px] text-slate-500">{{ $question->created_at->diffForHumans() }}</span>
+                                                </div>
+                                                @if(Auth::id() === $question->user_id || Auth::user()->isTeacher())
+                                                    <form action="{{ route('course.questions.delete', [$course->id, $question->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this question and all its replies?');" class="inline m-0 p-0">
+                                                        @csrf
+                                                        <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/20 hover:border-red-500/40 text-red-400 font-bold py-0.5 px-2 rounded text-[9px] transition cursor-pointer inline-flex items-center gap-0.5">
+                                                            🗑️ Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
                                             </div>
                                             <p class="text-slate-300 text-sm leading-relaxed whitespace-pre-line">{{ $question->question_text }}</p>
                                             
@@ -1380,12 +1424,22 @@
                                                     {{ strtoupper(substr($answer->user->name, 0, 1)) }}
                                                 </div>
                                                 <div class="flex-grow space-y-1.5">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="font-bold text-xs text-white">{{ $answer->user->name }}</span>
-                                                        @if($answer->user->isTeacher())
-                                                            <span class="bg-purple-500/10 text-purple-300 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded border border-purple-500/25">Instructor</span>
+                                                    <div class="flex items-center justify-between w-full">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="font-bold text-xs text-white">{{ $answer->user->name }}</span>
+                                                            @if($answer->user->isTeacher())
+                                                                <span class="bg-purple-500/10 text-purple-300 text-[8px] font-extrabold uppercase px-1.5 py-0.5 rounded border border-purple-500/25">Instructor</span>
+                                                            @endif
+                                                            <span class="text-[9px] text-slate-500">{{ $answer->created_at->diffForHumans() }}</span>
+                                                        </div>
+                                                        @if(Auth::id() === $answer->user_id || Auth::user()->isTeacher())
+                                                            <form action="{{ route('course.answers.delete', [$course->id, $question->id, $answer->id]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this reply?');" class="inline m-0 p-0">
+                                                                @csrf
+                                                                <button type="submit" class="bg-red-650/10 hover:bg-red-650/20 border border-red-500/20 hover:border-red-500/40 text-red-400 font-bold py-0.5 px-2 rounded text-[8px] transition cursor-pointer inline-flex items-center gap-0.5">
+                                                                    🗑️ Delete
+                                                                </button>
+                                                            </form>
                                                         @endif
-                                                        <span class="text-[9px] text-slate-500">{{ $answer->created_at->diffForHumans() }}</span>
                                                     </div>
                                                     <p class="text-slate-300 text-xs leading-relaxed whitespace-pre-line">{{ $answer->answer_text }}</p>
                                                     

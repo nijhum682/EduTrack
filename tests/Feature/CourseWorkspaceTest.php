@@ -757,4 +757,69 @@ class CourseWorkspaceTest extends TestCase
             'description' => "Student {$student->name} submitted assignment: Chemistry Lab HW in {$this->course->title}",
         ]);
     }
+
+    /**
+     * Test authorized deletions by student and teacher.
+     */
+    public function test_authorized_deletions_by_student_and_teacher()
+    {
+        $student1 = \App\Models\User::factory()->create(['role' => 'student']);
+        $student2 = \App\Models\User::factory()->create(['role' => 'student']);
+        $student1->courses()->attach($this->course->id);
+        $student2->courses()->attach($this->course->id);
+
+        // 1. Student 1 uploads a note
+        $note = \App\Models\CourseNote::create([
+            'course_id' => $this->course->id,
+            'user_id' => $student1->id,
+            'title' => 'My Biology Notes',
+            'file_path' => 'uploads/notes/test.pdf',
+        ]);
+
+        // Student 2 tries to delete Student 1's note (should be unauthorized)
+        $unauthNoteDelete = $this->actingAs($student2)
+            ->post(route('teacher.notes.delete', [$this->course->id, $note->id]));
+        $unauthNoteDelete->assertRedirect();
+        $this->assertDatabaseHas('course_notes', ['id' => $note->id]);
+
+        // Student 1 deletes their own note (should be authorized)
+        $authNoteDelete = $this->actingAs($student1)
+            ->post(route('teacher.notes.delete', [$this->course->id, $note->id]));
+        $authNoteDelete->assertRedirect();
+        $this->assertDatabaseMissing('course_notes', ['id' => $note->id]);
+
+        // 2. Student 1 asks a question
+        $question = \App\Models\CourseQuestion::create([
+            'course_id' => $this->course->id,
+            'user_id' => $student1->id,
+            'question_text' => 'How does ATP synth work?',
+        ]);
+
+        // Student 2 tries to delete Student 1's question (should be unauthorized)
+        $unauthQuestionDelete = $this->actingAs($student2)
+            ->post(route('course.questions.delete', [$this->course->id, $question->id]));
+        $unauthQuestionDelete->assertRedirect();
+        $this->assertDatabaseHas('course_questions', ['id' => $question->id]);
+
+        // Student 1 deletes their own question (should be authorized)
+        $authQuestionDelete = $this->actingAs($student1)
+            ->post(route('course.questions.delete', [$this->course->id, $question->id]));
+        $authQuestionDelete->assertRedirect();
+        $this->assertDatabaseMissing('course_questions', ['id' => $question->id]);
+
+        // 3. Teacher deletes a scheduled class
+        $class = \App\Models\ScheduledClass::create([
+            'course_id' => $this->course->id,
+            'title' => 'Special QA Live Class',
+            'scheduled_at' => now()->addHour(),
+            'duration_minutes' => 45,
+            'platform' => 'Zoom',
+        ]);
+
+        // Teacher deletes class (should be authorized)
+        $deleteClassResponse = $this->actingAs($this->teacher)
+            ->post(route('teacher.classes.delete', $class->id));
+        $deleteClassResponse->assertRedirect();
+        $this->assertDatabaseMissing('scheduled_classes', ['id' => $class->id]);
+    }
 }
