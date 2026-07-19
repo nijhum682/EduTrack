@@ -50,6 +50,7 @@
                 radial-gradient(at 50% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
         }
         body.theme-space-light {
+            background-color: #f1f5f9 !important;
             background-image: 
                 linear-gradient(135deg, rgba(255, 255, 255, 0.84) 0%, rgba(237, 244, 254, 0.84) 65%, rgba(218, 231, 252, 0.84) 100%),
                 url('{{ asset('images/header-image.png') }}');
@@ -106,15 +107,66 @@
             border-color: rgba(15, 23, 42, 0.15) !important;
             background: rgba(15, 23, 42, 0.02) !important;
         }
+        /* Cards & panels */
+        body.theme-space-light .border-slate-800\/80,
+        body.theme-space-light .border-slate-800\/60 {
+            border-color: rgba(15, 23, 42, 0.1) !important;
+        }
+        /* Question number badge */
+        body.theme-space-light .bg-slate-800 {
+            background-color: #e2e8f0 !important;
+        }
+        body.theme-space-light .text-slate-400.border-slate-700\/60 {
+            border-color: #cbd5e1 !important;
+        }
+        /* MCQ option labels */
+        body.theme-space-light label.flex.items-center {
+            background: rgba(241, 245, 249, 0.8) !important;
+            border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        body.theme-space-light label.flex.items-center:hover {
+            background: rgba(226, 232, 240, 0.9) !important;
+        }
+        /* Written textarea */
+        body.theme-space-light textarea {
+            background: rgba(255, 255, 255, 0.75) !important;
+            border-color: rgba(15, 23, 42, 0.12) !important;
+            color: #0f172a !important;
+        }
+        /* Khata upload box */
+        body.theme-space-light .bg-slate-950\/10,
+        body.theme-space-light .bg-slate-950\/20 {
+            background: rgba(241, 245, 249, 0.6) !important;
+        }
+        /* Footer */
+        body.theme-space-light footer {
+            background: rgba(241, 245, 249, 0.7) !important;
+            border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        body.theme-space-light footer p {
+            color: #94a3b8 !important;
+        }
+        /* Header bar border */
+        body.theme-space-light header {
+            border-color: rgba(15, 23, 42, 0.08) !important;
+        }
+        /* Course code badge */
+        body.theme-space-light .bg-indigo-500\/10 {
+            background: rgba(99, 102, 241, 0.08) !important;
+        }
+        /* Marks badge */
+        body.theme-space-light .bg-slate-800.text-slate-400 {
+            background: #e2e8f0 !important;
+            color: #475569 !important;
+            border-color: #cbd5e1 !important;
+        }
+        /* Leave Arena link */
+        body.theme-space-light .border-slate-800 {
+            border-color: rgba(15, 23, 42, 0.12) !important;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
-    <script>
-        (function() {
-            const currentTheme = localStorage.getItem('theme') || 'light';
-            document.body.classList.add(currentTheme === 'dark' ? 'theme-space-dark' : 'theme-space-light');
-        })();
-    </script>
+<body class="theme-space-light min-h-screen flex flex-col">
 
     <!-- Exam Top Bar -->
     <header class="glass-panel sticky top-0 z-40 border-b border-slate-800/80 px-6 py-4 flex items-center justify-between">
@@ -226,43 +278,22 @@
         document.addEventListener('DOMContentLoaded', function () {
             const timerDisplay = document.getElementById('countdown-timer');
             const form = document.getElementById('exam-form');
-            const taskId = "{{ $task->id }}";
-            const durationMinutes = parseInt("{{ $task->duration_minutes }}") || 60;
-            const durationSeconds = durationMinutes * 60;
-            
-            const startKey = `exam_start_${taskId}`;
-            
-            let startTime = localStorage.getItem(startKey);
-            if (!startTime) {
-                startTime = Date.now().toString();
-                localStorage.setItem(startKey, startTime);
+
+            // Use server-computed remaining seconds — tamper-proof and synchronized
+            let remainingSeconds = parseInt("{{ $remainingSeconds ?? ($task->duration_minutes * 60) }}") || 3600;
+
+            // Clamp to non-negative
+            if (remainingSeconds < 0) remainingSeconds = 0;
+
+            let autoSubmitTriggered = false;
+
+            function formatTime(secs) {
+                const m = Math.floor(secs / 60);
+                const s = secs % 60;
+                return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
             }
-            
-            function updateTimer() {
-                const elapsedSeconds = Math.floor((Date.now() - parseInt(startTime)) / 1000);
-                const remainingSeconds = durationSeconds - elapsedSeconds;
-                
-                if (remainingSeconds <= 0) {
-                    clearInterval(timerInterval);
-                    timerDisplay.textContent = "00:00";
-                    timerDisplay.classList.add('text-red-500');
-                    alert("Time is up! Your exam paper will be submitted automatically.");
-                    
-                    // Clear storage key and submit
-                    localStorage.removeItem(startKey);
-                    form.submit();
-                    return;
-                }
-                
-                const mins = Math.floor(remainingSeconds / 60);
-                const secs = remainingSeconds % 60;
-                
-                const formattedMins = String(mins).padStart(2, '0');
-                const formattedSecs = String(secs).padStart(2, '0');
-                
-                timerDisplay.textContent = `${formattedMins}:${formattedSecs}`;
-                
-                // Visual warnings
+
+            function applyTimerStyle() {
                 if (remainingSeconds <= 60) {
                     timerDisplay.parentElement.className = "glass-panel border-red-500/40 bg-red-500/10 rounded-xl px-4 py-2 flex items-center gap-2.5 shadow shadow-red-500/10 animate-bounce";
                     timerDisplay.className = "text-lg font-mono font-extrabold text-red-400";
@@ -271,15 +302,69 @@
                     timerDisplay.className = "text-lg font-mono font-extrabold text-amber-400";
                 }
             }
-            
-            // Run timer instantly and tick every second
+
+            function showAutoSubmitOverlay(countdown) {
+                let overlay = document.getElementById('auto-submit-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'auto-submit-overlay';
+                    overlay.style.cssText = `
+                        position: fixed; inset: 0; z-index: 9999;
+                        background: rgba(0,0,0,0.85);
+                        display: flex; flex-direction: column;
+                        align-items: center; justify-content: center;
+                        backdrop-filter: blur(6px);
+                    `;
+                    overlay.innerHTML = `
+                        <div style="text-align:center; color:#fff; padding: 40px;">
+                            <div style="font-size:4rem; margin-bottom:12px;">⏰</div>
+                            <h2 style="font-size:1.8rem; font-weight:700; color:#f87171; margin-bottom:8px;">Time is Up!</h2>
+                            <p style="color:#cbd5e1; margin-bottom:20px; font-size:1rem;">Your exam is being submitted automatically in</p>
+                            <div id="overlay-countdown" style="font-size:5rem; font-weight:900; font-family:monospace; color:#f87171; line-height:1;">${countdown}</div>
+                            <p style="color:#94a3b8; margin-top:16px; font-size:0.9rem;">Please wait…</p>
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                } else {
+                    document.getElementById('overlay-countdown').textContent = countdown;
+                }
+            }
+
+            function triggerAutoSubmit() {
+                if (autoSubmitTriggered) return;
+                autoSubmitTriggered = true;
+                clearInterval(timerInterval);
+
+                timerDisplay.textContent = "00:00";
+
+                let count = 5;
+                showAutoSubmitOverlay(count);
+
+                const submissionCountdown = setInterval(function () {
+                    count--;
+                    if (count <= 0) {
+                        clearInterval(submissionCountdown);
+                        form.submit();
+                    } else {
+                        showAutoSubmitOverlay(count);
+                    }
+                }, 1000);
+            }
+
+            function updateTimer() {
+                if (remainingSeconds <= 0) {
+                    triggerAutoSubmit();
+                    return;
+                }
+
+                timerDisplay.textContent = formatTime(remainingSeconds);
+                applyTimerStyle();
+                remainingSeconds--;
+            }
+
+            // Run immediately then tick every second
             updateTimer();
             const timerInterval = setInterval(updateTimer, 1000);
-            
-            // Clean localstorage on manual submit
-            form.addEventListener('submit', function () {
-                localStorage.removeItem(startKey);
-            });
         });
     </script>
 </body>

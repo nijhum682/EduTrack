@@ -30,9 +30,47 @@ class StudentExamController extends Controller
             return redirect()->route('dashboard')->with('error', 'You have already completed this test.');
         }
 
+        // Log starting of exam if not logged yet
+        if (!$submission) {
+            $submission = TaskSubmission::create([
+                'user_id' => $user->id,
+                'task_id' => $task->id,
+                'is_completed' => false,
+                'answers' => [],
+            ]);
+        }
+
+        // Load course and questions early so they're available in all branches
         $task->load(['course', 'questions']);
 
-        return view('student.arena', compact('task', 'user'));
+        // Calculate remaining seconds
+        $durationSeconds = ($task->duration_minutes ?: 60) * 60;
+        $elapsedSeconds = now()->diffInSeconds($submission->created_at);
+        $remainingSeconds = $durationSeconds - $elapsedSeconds;
+
+        if ($remainingSeconds <= 0) {
+            $submission->is_completed = true;
+            $submission->save();
+
+            // Auto-grade MCQ questions
+            $submission->load(['task.questions']);
+            $result = TaskSubmission::calculateScoreAndDetails($submission);
+            
+            $answers = $submission->answers ?: [];
+            $answers['question_grades'] = $result['question_grades'];
+            $answers['mcq_details'] = $result['mcq_details'];
+
+            $submission->update([
+                'score' => $result['total_score'],
+                'answers' => $answers,
+            ]);
+
+            \App\Models\Activity::log('exam_submission', "Submitted test (auto-submitted): {$task->title} for {$task->course->title}");
+
+            return redirect()->route('dashboard')->with('error', 'Time is up! Your exam paper has been auto-submitted.');
+        }
+
+        return view('student.arena', compact('task', 'user', 'remainingSeconds'));
     }
 
     /**
@@ -47,14 +85,19 @@ class StudentExamController extends Controller
             return redirect()->route('dashboard')->with('error', 'You must be enrolled in the course to take this test.');
         }
 
-        $submission = TaskSubmission::firstOrNew([
-            'user_id' => $user->id,
-            'task_id' => $task->id,
-        ]);
+        $submission = TaskSubmission::firstOrCreate(
+            ['user_id' => $user->id, 'task_id' => $task->id],
+            ['is_completed' => false, 'answers' => []]
+        );
 
         if ($submission->is_completed) {
             return redirect()->route('dashboard')->with('error', 'You have already submitted this test.');
         }
+
+        // Check if time has expired with a 15-second grace period
+        $durationSeconds = ($task->duration_minutes ?: 60) * 60;
+        $elapsedSeconds = now()->diffInSeconds($submission->created_at);
+        $isLate = $elapsedSeconds > ($durationSeconds + 15);
 
         // Handle khata image file upload
         $filePath = null;
@@ -92,7 +135,11 @@ class StudentExamController extends Controller
             'answers' => $answers,
         ]);
 
-        \App\Models\Activity::log('exam_submission', "Submitted test: {$task->title} for {$task->course->title}");
+        \App\Models\Activity::log('exam_submission', "Submitted test" . ($isLate ? " (auto-submitted)" : "") . ": {$task->title} for {$task->course->title}");
+
+        if ($isLate) {
+            return redirect()->route('dashboard')->with('error', 'Time is up! Your exam paper has been auto-submitted.');
+        }
 
         return redirect()->route('dashboard')->with('success', 'Test submitted successfully!');
     }

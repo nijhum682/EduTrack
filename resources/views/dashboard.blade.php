@@ -370,6 +370,48 @@
             body.theme-space-light .dark\:border-emerald-850 {
                 border-color: rgba(16, 185, 129, 0.3) !important;
             }
+            /* Toast readability styling overrides for light theme */
+            body.theme-space-light .toast-item.bg-emerald-950\/90 {
+                background-color: #ecfdf5 !important; /* light green background */
+                border-color: #a7f3d0 !important; /* light green border */
+                color: #065f46 !important; /* dark green text */
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 span {
+                color: #065f46 !important;
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 button {
+                color: #047857 !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 button:hover {
+                color: #065f46 !important;
+                background: rgba(4, 120, 87, 0.1) !important;
+            }
+            
+            body.theme-space-light .toast-item.bg-red-950\/90,
+            body.theme-space-light .toast-item.bg-rose-950\/90 {
+                background-color: #fff1f2 !important; /* light red background */
+                border-color: #fecdd3 !important; /* light red border */
+                color: #9f1239 !important; /* dark red text */
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 span,
+            body.theme-space-light .toast-item.bg-rose-950\/90 span {
+                color: #9f1239 !important;
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 button,
+            body.theme-space-light .toast-item.bg-rose-950\/90 button {
+                color: #be123c !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 button:hover,
+            body.theme-space-light .toast-item.bg-rose-950\/90 button:hover {
+                color: #9f1239 !important;
+                background: rgba(190, 18, 60, 0.1) !important;
+            }
         </style>
     </head>
     <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">

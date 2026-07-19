@@ -623,6 +623,48 @@
             body.theme-space-light .dark\:border-emerald-850 {
                 border-color: rgba(16, 185, 129, 0.3) !important;
             }
+            /* Toast readability styling overrides for light theme */
+            body.theme-space-light .toast-item.bg-emerald-950\/90 {
+                background-color: #ecfdf5 !important; /* light green background */
+                border-color: #a7f3d0 !important; /* light green border */
+                color: #065f46 !important; /* dark green text */
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 span {
+                color: #065f46 !important;
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 button {
+                color: #047857 !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            body.theme-space-light .toast-item.bg-emerald-950\/90 button:hover {
+                color: #065f46 !important;
+                background: rgba(4, 120, 87, 0.1) !important;
+            }
+            
+            body.theme-space-light .toast-item.bg-red-950\/90,
+            body.theme-space-light .toast-item.bg-rose-950\/90 {
+                background-color: #fff1f2 !important; /* light red background */
+                border-color: #fecdd3 !important; /* light red border */
+                color: #9f1239 !important; /* dark red text */
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 span,
+            body.theme-space-light .toast-item.bg-rose-950\/90 span {
+                color: #9f1239 !important;
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 button,
+            body.theme-space-light .toast-item.bg-rose-950\/90 button {
+                color: #be123c !important;
+                background: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            body.theme-space-light .toast-item.bg-red-950\/90 button:hover,
+            body.theme-space-light .toast-item.bg-rose-950\/90 button:hover {
+                color: #9f1239 !important;
+                background: rgba(190, 18, 60, 0.1) !important;
+            }
         </style>
     </head>
     <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
@@ -1876,7 +1918,7 @@
                                                         data-answers="{{ json_encode($sub->answers) }}"
                                                         data-file="{{ $sub->uploaded_file ? asset($sub->uploaded_file) : '' }}"
                                                         onclick="handleGradingButtonClick(this)">
-                                                        {{ is_null($sub->score) ? 'Grade Submission' : 'Re-Evaluate' }}
+                                                        {{ is_null($sub->score) ? 'Evaluate' : 'Re-Evaluate' }}
                                                     </button>
                                                 </td>
                                             </tr>
@@ -1945,12 +1987,49 @@
 
                     <!-- Uploaded Khata Preview Block -->
                     <div id="grading-khata-block" class="hidden border-t border-slate-800/80 pt-4 space-y-2">
-                        <span class="text-xs font-bold text-slate-400 block">Uploaded Khata (Answer Sheet)</span>
-                        <div class="border border-slate-800 rounded-xl bg-slate-900/40 p-2 text-center overflow-hidden">
-                            <a id="grading-khata-link" href="#" target="_blank" title="Click to view full size">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-400 block">Uploaded Khata (Answer Sheet)</span>
+                            <!-- Annotation / Drawing Controls -->
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="toggle-pen-btn" onclick="toggleDrawingMode()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700/60 transition cursor-pointer flex items-center gap-1">
+                                    ✏️ Draw on Script
+                                </button>
+                                <div id="drawing-toolbar" class="hidden flex items-center gap-1.5">
+                                    <button type="button" onclick="clearDrawing()" class="bg-red-950/40 hover:bg-red-900/40 text-red-400 px-2 py-0.5 rounded text-[10px] font-bold border border-red-500/20 transition cursor-pointer">
+                                        Reset
+                                    </button>
+                                    <button type="button" onclick="undoDrawing()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-[10px] font-bold border border-slate-700/60 transition cursor-pointer">
+                                        Undo
+                                    </button>
+                                    <!-- Pen Color Selector -->
+                                    <select id="pen-color" onchange="changePenColor(this.value)" class="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none cursor-pointer">
+                                        <option value="red" selected>🔴 Red</option>
+                                        <option value="green">🟢 Green</option>
+                                        <option value="blue">🔵 Blue</option>
+                                        <option value="black">⚫ Black</option>
+                                    </select>
+                                    <!-- Pen Size Selector -->
+                                    <select id="pen-size" onchange="changePenSize(this.value)" class="bg-slate-950 border border-slate-800 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none cursor-pointer">
+                                        <option value="3">Thin</option>
+                                        <option value="6" selected>Medium</option>
+                                        <option value="12">Thick</option>
+                                        <option value="20">Very Thick</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border border-slate-800 rounded-xl bg-slate-900/40 p-2 text-center overflow-hidden relative flex items-center justify-center min-h-[150px]">
+                            <!-- Static Image view (default) -->
+                            <a id="grading-khata-link" href="#" target="_blank" title="Click to view full size" class="w-full">
                                 <img id="grading-khata-img" src="" alt="Khata answer sheet" class="max-h-72 mx-auto rounded-lg border border-slate-800 hover:scale-[1.01] transition-transform duration-300 cursor-zoom-in">
                             </a>
+                            <!-- Drawing Canvas (hidden by default) -->
+                            <div id="grading-canvas-container" class="hidden w-full overflow-auto flex justify-center">
+                                <canvas id="grading-canvas" class="max-h-96 border border-slate-700 rounded-lg bg-white" style="cursor: crosshair; touch-action: none; max-width: 100%; object-fit: contain;"></canvas>
+                            </div>
                         </div>
+                        <!-- Hidden input to store base64 annotated image data -->
+                        <input type="hidden" name="annotated_file" id="annotated-file-data">
                     </div>
 
                     <!-- Feedback block -->
@@ -1964,8 +2043,8 @@
                         <button type="button" onclick="closeGradingModal()" class="bg-slate-900 border border-slate-700/60 text-slate-300 hover:text-white text-xs font-semibold py-2 px-5 rounded-xl transition cursor-pointer">
                             Cancel
                         </button>
-                        <button type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-purple-650/20 active:scale-[0.98]">
-                            Submit Grades
+                        <button id="grading-submit-btn" type="submit" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold py-2 px-6 rounded-xl transition cursor-pointer shadow-lg shadow-purple-650/20 active:scale-[0.98]">
+                            Evaluate
                         </button>
                     </div>
                 </form>
@@ -2034,7 +2113,33 @@
                 const answers = JSON.parse(btn.getAttribute('data-answers') || '{}');
                 const uploadedFile = btn.getAttribute('data-file');
 
+                // Reset drawing states
+                isDrawingMode = false;
+                drawingHistory = [];
+                originalImageSrc = '';
+                const annotatedInput = document.getElementById('annotated-file-data');
+                if (annotatedInput) annotatedInput.value = '';
+                
+                const toggleBtn = document.getElementById('toggle-pen-btn');
+                const toolbar = document.getElementById('drawing-toolbar');
+                const imageLink = document.getElementById('grading-khata-link');
+                const canvasContainer = document.getElementById('grading-canvas-container');
+                if (toggleBtn) {
+                    toggleBtn.textContent = '✏️ Draw on Script';
+                    toggleBtn.className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700/60 transition cursor-pointer flex items-center gap-1';
+                }
+                if (toolbar) toolbar.classList.add('hidden');
+                if (imageLink) imageLink.classList.remove('hidden');
+                if (canvasContainer) canvasContainer.classList.add('hidden');
+
                 form.action = `/teacher/submissions/${submissionId}/evaluate`;
+
+                // Update modal submit button label based on whether already graded
+                const submitBtn = document.getElementById('grading-submit-btn');
+                if (submitBtn) {
+                    const alreadyGraded = currentScore !== '' && currentScore !== null && currentScore !== 'null';
+                    submitBtn.textContent = alreadyGraded ? 'Re-Evaluate' : 'Evaluate';
+                }
                 
                 document.getElementById('grading-student').textContent = studentName;
                 document.getElementById('grading-task-title').textContent = taskTitle;
@@ -2049,6 +2154,21 @@
                     khataImg.src = uploadedFile;
                     khataLink.href = uploadedFile;
                     khataBlock.classList.remove('hidden');
+                    
+                    // Show or hide toggle pen button based on file extension (must be an image)
+                    if (toggleBtn) {
+                        const cleanUrl = uploadedFile.split('?')[0].toLowerCase();
+                        const isImage = cleanUrl.endsWith('.png') || 
+                                        cleanUrl.endsWith('.jpg') || 
+                                        cleanUrl.endsWith('.jpeg') || 
+                                        cleanUrl.endsWith('.gif') || 
+                                        cleanUrl.endsWith('.webp');
+                        if (isImage) {
+                            toggleBtn.classList.remove('hidden');
+                        } else {
+                            toggleBtn.classList.add('hidden');
+                        }
+                    }
                 } else {
                     khataImg.src = '';
                     khataLink.href = '#';
@@ -2208,6 +2328,220 @@
                 const modal = document.getElementById('grading-modal');
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+
+                // Turn off drawing mode and reset variables
+                isDrawingMode = false;
+                const toggleBtn = document.getElementById('toggle-pen-btn');
+                const toolbar = document.getElementById('drawing-toolbar');
+                const imageLink = document.getElementById('grading-khata-link');
+                const canvasContainer = document.getElementById('grading-canvas-container');
+                if (toggleBtn) {
+                    toggleBtn.textContent = '✏️ Draw on Script';
+                    toggleBtn.className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700/60 transition cursor-pointer flex items-center gap-1';
+                }
+                if (toolbar) toolbar.classList.add('hidden');
+                if (imageLink) imageLink.classList.remove('hidden');
+                if (canvasContainer) canvasContainer.classList.add('hidden');
+                
+                drawingHistory = [];
+                originalImageSrc = '';
+                const annotatedInput = document.getElementById('annotated-file-data');
+                if (annotatedInput) annotatedInput.value = '';
+            }
+
+            // Annotation drawing scripts
+            let isDrawingMode = false;
+            let canvasElement = null;
+            let canvasCtx = null;
+            let drawingImgObj = null;
+            let isDrawing = false;
+            let penColor = 'red';
+            let penSize = 6;
+            let drawingHistory = [];
+            let originalImageSrc = '';
+
+            function toggleDrawingMode() {
+                const toggleBtn = document.getElementById('toggle-pen-btn');
+                const toolbar = document.getElementById('drawing-toolbar');
+                const imageLink = document.getElementById('grading-khata-link');
+                const canvasContainer = document.getElementById('grading-canvas-container');
+                const khataImg = document.getElementById('grading-khata-img');
+                
+                isDrawingMode = !isDrawingMode;
+                
+                if (isDrawingMode) {
+                    toggleBtn.textContent = '✏️ Save / View Image';
+                    toggleBtn.className = 'bg-purple-650 hover:bg-purple-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold border border-purple-500/40 transition cursor-pointer flex items-center gap-1';
+                    toolbar.classList.remove('hidden');
+                    imageLink.classList.add('hidden');
+                    canvasContainer.classList.remove('hidden');
+                    
+                    initCanvas(khataImg.src);
+                } else {
+                    toggleBtn.textContent = '✏️ Draw on Script';
+                    toggleBtn.className = 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-[10px] font-bold border border-slate-700/60 transition cursor-pointer flex items-center gap-1';
+                    toolbar.classList.add('hidden');
+                    imageLink.classList.remove('hidden');
+                    canvasContainer.classList.add('hidden');
+                    
+                    saveCanvasData();
+                }
+            }
+
+            function initCanvas(imgSrc) {
+                const canvas = document.getElementById('grading-canvas');
+                canvasElement = canvas;
+                canvasCtx = canvas.getContext('2d');
+                
+                if (originalImageSrc !== imgSrc) {
+                    originalImageSrc = imgSrc;
+                    drawingHistory = [];
+                    document.getElementById('annotated-file-data').value = '';
+                }
+                
+                drawingImgObj = new Image();
+                drawingImgObj.crossOrigin = "anonymous";
+                drawingImgObj.onload = function() {
+                    canvas.width = drawingImgObj.naturalWidth || drawingImgObj.width;
+                    canvas.height = drawingImgObj.naturalHeight || drawingImgObj.height;
+                    
+                    drawCanvasState();
+                    setupDrawingListeners();
+                };
+                drawingImgObj.src = imgSrc;
+            }
+
+            function drawCanvasState() {
+                if (!canvasCtx || !drawingImgObj) return;
+                canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+                canvasCtx.drawImage(drawingImgObj, 0, 0, canvasElement.width, canvasElement.height);
+                
+                drawingHistory.forEach(stroke => {
+                    canvasCtx.beginPath();
+                    canvasCtx.strokeStyle = stroke.color;
+                    canvasCtx.lineWidth = stroke.size;
+                    canvasCtx.lineCap = 'round';
+                    canvasCtx.lineJoin = 'round';
+                    
+                    stroke.points.forEach((point, i) => {
+                        if (i === 0) {
+                            canvasCtx.moveTo(point.x, point.y);
+                        } else {
+                            canvasCtx.lineTo(point.x, point.y);
+                        }
+                    });
+                    canvasCtx.stroke();
+                });
+            }
+
+            function setupDrawingListeners() {
+                if (canvasElement.dataset.listenersBound) return;
+                canvasElement.dataset.listenersBound = 'true';
+                
+                let currentStroke = null;
+                
+                function getCoordinates(e) {
+                    const rect = canvasElement.getBoundingClientRect();
+                    let clientX, clientY;
+                    if (e.touches && e.touches.length > 0) {
+                        clientX = e.touches[0].clientX;
+                        clientY = e.touches[0].clientY;
+                    } else {
+                        clientX = e.clientX;
+                        clientY = e.clientY;
+                    }
+                    
+                    const cssWidth = rect.width;
+                    const cssHeight = rect.height;
+                    
+                    const x = ((clientX - rect.left) / cssWidth) * canvasElement.width;
+                    const y = ((clientY - rect.top) / cssHeight) * canvasElement.height;
+                    
+                    return { x, y };
+                }
+                
+                function startDrawing(e) {
+                    e.preventDefault();
+                    isDrawing = true;
+                    const coords = getCoordinates(e);
+                    
+                    currentStroke = {
+                        color: penColor,
+                        size: penSize,
+                        points: [coords]
+                    };
+                    
+                    canvasCtx.beginPath();
+                    canvasCtx.strokeStyle = penColor;
+                    canvasCtx.lineWidth = penSize;
+                    canvasCtx.lineCap = 'round';
+                    canvasCtx.lineJoin = 'round';
+                    canvasCtx.moveTo(coords.x, coords.y);
+                }
+                
+                function draw(e) {
+                    if (!isDrawing) return;
+                    e.preventDefault();
+                    const coords = getCoordinates(e);
+                    
+                    currentStroke.points.push(coords);
+                    
+                    canvasCtx.lineTo(coords.x, coords.y);
+                    canvasCtx.stroke();
+                }
+                
+                function stopDrawing() {
+                    if (!isDrawing) return;
+                    isDrawing = false;
+                    if (currentStroke && currentStroke.points.length > 0) {
+                        drawingHistory.push(currentStroke);
+                        currentStroke = null;
+                        saveCanvasData();
+                    }
+                }
+                
+                canvasElement.addEventListener('mousedown', startDrawing);
+                canvasElement.addEventListener('mousemove', draw);
+                canvasElement.addEventListener('mouseup', stopDrawing);
+                canvasElement.addEventListener('mouseleave', stopDrawing);
+                
+                canvasElement.addEventListener('touchstart', startDrawing, { passive: false });
+                canvasElement.addEventListener('touchmove', draw, { passive: false });
+                canvasElement.addEventListener('touchend', stopDrawing);
+            }
+
+            function changePenColor(color) {
+                penColor = color;
+            }
+
+            function changePenSize(size) {
+                penSize = parseInt(size);
+            }
+
+            function clearDrawing() {
+                if (confirm('Are you sure you want to clear all markings?')) {
+                    drawingHistory = [];
+                    drawCanvasState();
+                    saveCanvasData();
+                }
+            }
+
+            function undoDrawing() {
+                if (drawingHistory.length > 0) {
+                    drawingHistory.pop();
+                    drawCanvasState();
+                    saveCanvasData();
+                }
+            }
+
+            function saveCanvasData() {
+                if (!canvasElement) return;
+                if (drawingHistory.length > 0) {
+                    const dataUrl = canvasElement.toDataURL('image/png');
+                    document.getElementById('annotated-file-data').value = dataUrl;
+                } else {
+                    document.getElementById('annotated-file-data').value = '';
+                }
             }
 
             // Auto-hide session status notifications after 5 seconds

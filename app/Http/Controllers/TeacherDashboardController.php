@@ -373,6 +373,33 @@ class TeacherDashboardController extends Controller
             ]);
         }
 
+        // 4. Handle annotated image save
+        if ($request->filled('annotated_file')) {
+            $base64Data = $request->input('annotated_file');
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+                $type = strtolower($type[1]); // png, jpeg, etc.
+                
+                if (in_array($type, ['png', 'jpeg', 'jpg'])) {
+                    $base64Data = base64_decode($base64Data);
+                    if ($base64Data !== false) {
+                        $filename = time() . '_' . $submission->user_id . '_annotated.' . $type;
+                        $destPath = public_path('uploads/submissions');
+                        if (!file_exists($destPath)) {
+                            mkdir($destPath, 0755, true);
+                        }
+                        $filePath = 'uploads/submissions/' . $filename;
+                        file_put_contents(public_path($filePath), $base64Data);
+                        
+                        // Update the submission's uploaded file to point to the annotated version
+                        $submission->update([
+                            'uploaded_file' => $filePath
+                        ]);
+                    }
+                }
+            }
+        }
+
         $submission->load(['user', 'task.course']);
         \App\Models\Activity::log('submission_evaluation', "Graded task submission for student {$submission->user->name} on task: {$submission->task->title}");
         \App\Models\Activity::log('grade_received', "Your submission for task: {$submission->task->title} has been graded by " . Auth::user()->name . ".", $submission->user_id);

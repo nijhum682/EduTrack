@@ -143,6 +143,47 @@
             #theme-toggle:hover {
                 transform: scale(1.05);
             }
+            
+            /* Role Selection card light theme styles */
+            body.theme-space-light label.cursor-pointer {
+                background: rgba(241, 245, 249, 0.6) !important;
+                border-color: rgba(15, 23, 42, 0.08) !important;
+            }
+            body.theme-space-light label.cursor-pointer:hover {
+                background: rgba(226, 232, 240, 0.7) !important;
+            }
+            body.theme-space-light label.cursor-pointer span.text-white {
+                color: #0f172a !important;
+            }
+            body.theme-space-light label.cursor-pointer span.text-slate-500 {
+                color: #475569 !important;
+            }
+            body.theme-space-light label.cursor-pointer:has(input[value="student"]:checked) {
+                border-color: #4f46e5 !important;
+                background: rgba(99, 102, 241, 0.08) !important;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1) !important;
+            }
+            body.theme-space-light label.cursor-pointer:has(input[value="teacher"]:checked) {
+                border-color: #a855f7 !important;
+                background: rgba(168, 85, 247, 0.08) !important;
+                box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.1) !important;
+            }
+            body.theme-space-light label.cursor-pointer input[type="radio"] {
+                border-color: rgba(15, 23, 42, 0.15) !important;
+                background-color: #ffffff !important;
+            }
+
+            /* Role Selection card dark theme styles */
+            body.theme-space-dark label.cursor-pointer:has(input[value="student"]:checked) {
+                border-color: #6366f1 !important;
+                background: rgba(99, 102, 241, 0.15) !important;
+                box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+            }
+            body.theme-space-dark label.cursor-pointer:has(input[value="teacher"]:checked) {
+                border-color: #a855f7 !important;
+                background: rgba(168, 85, 247, 0.15) !important;
+                box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2) !important;
+            }
         </style>
     </head>
     <body class="theme-space-light min-h-screen text-slate-100 flex items-center justify-center p-4 md:p-8 relative overflow-x-hidden">
@@ -199,7 +240,7 @@
                             </span>
                             <input type="text" name="name" id="name" value="{{ old('name') }}" required autofocus autocomplete="name"
                                 class="w-full bg-slate-950/50 border @error('name') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
-                                placeholder="John Doe">
+                                placeholder="Munem Shahriar">
                         </div>
                         @error('name')
                             <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
@@ -220,7 +261,7 @@
                             </span>
                             <input type="text" name="username" id="username" value="{{ old('username') }}" required autocomplete="username"
                                 class="w-full bg-slate-950/50 border @error('username') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
-                                placeholder="johndoe">
+                                placeholder="Nijhum">
                         </div>
                         @error('username')
                             <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
@@ -262,7 +303,7 @@
                             </span>
                             <input type="text" name="phone_number" id="phone_number" value="{{ old('phone_number') }}" autocomplete="tel"
                                 class="w-full bg-slate-950/50 border @error('phone_number') border-red-500 @else border-slate-800 @enderror focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-white rounded-xl pl-10 pr-4 py-3 outline-none transition duration-200 placeholder-slate-600 text-sm"
-                                placeholder="+1 (555) 0199">
+                                placeholder="01753027682">
                         </div>
                         @error('phone_number')
                             <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1">
