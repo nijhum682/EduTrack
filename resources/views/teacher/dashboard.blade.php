@@ -313,6 +313,51 @@
                 color: #9f1239 !important;
                 background: rgba(190, 18, 60, 0.1) !important;
             }
+
+            /* AI Chat Drawer Light Theme Overrides */
+            body.theme-space-light #ai-chat-drawer {
+                background: #e2e8f0 !important;
+                border-left: 1px solid #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            body.theme-space-light #ai-chat-drawer h3 {
+                color: #0f172a !important;
+            }
+            body.theme-space-light #ai-chat-drawer .bg-slate-900\/60 {
+                background-color: #edf1f7 !important;
+                border-bottom-color: #cbd5e1 !important;
+            }
+            body.theme-space-light #ai-chat-drawer .bg-indigo-600\/10 {
+                background-color: #e0e7ff !important;
+                border-color: #c7d2fe !important;
+                color: #312e81 !important;
+            }
+            body.theme-space-light #ai-chat-drawer .bg-slate-900\/40 {
+                background-color: #e2e8f0 !important;
+                border-top-color: #cbd5e1 !important;
+            }
+            body.theme-space-light #ai-chat-drawer input {
+                background-color: #f1f5f9 !important;
+                border-color: #cbd5e1 !important;
+                color: #0f172a !important;
+            }
+            body.theme-space-light #ai-chat-drawer #ai-chat-messages div > div.bg-slate-900\/60 {
+                background-color: #edf1f7 !important;
+                border-color: #cbd5e1 !important;
+                color: #1e293b !important;
+            }
+
+            /* User Message Bubble style */
+            .user-message-bubble {
+                background-color: #0284c7 !important; /* sky-600 */
+                color: #ffffff !important;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            body.theme-space-light .user-message-bubble {
+                background-color: #bae6fd !important; /* sky-200 light blue */
+                color: #0369a1 !important; /* sky-700 dark text */
+                border: 1px solid #7dd3fc !important;
+            }
         </style>
     </head>
     <body class="theme-space-light min-h-screen text-slate-100 flex flex-col transition-colors duration-500">
@@ -350,6 +395,11 @@
 
                 <!-- Theme Switcher & User Details -->
                 <div class="flex items-center gap-3">
+
+                    <!-- AI Assistant Button -->
+                    <button onclick="toggleAiChatDrawer()" class="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-2 rounded-xl text-xs font-semibold border border-indigo-500/30 transition cursor-pointer flex items-center gap-1.5 shadow-md shadow-indigo-500/10" title="Chat with EduTrack AI">
+                        🤖 Ask AI
+                    </button>
 
                     <!-- Notifications Button -->
                     <button onclick="toggleNotificationsModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2 rounded-xl text-xs font-semibold border border-slate-700/50 transition cursor-pointer flex items-center gap-1.5" title="View Activity Notifications">
@@ -1030,5 +1080,132 @@
                 </form>
             </div>
         </div>
-    </body>
+
+    <!-- AI Chat Drawer -->
+    <div id="ai-chat-drawer" class="fixed top-0 right-0 h-full w-96 max-w-full z-50 translate-x-full transition-transform duration-300 ease-in-out shadow-2xl flex flex-col glass-panel" style="background: rgba(15, 23, 42, 0.95); border-left: 1px solid rgba(255,255,255,0.08);">
+        <!-- Header -->
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+            <div class="flex items-center gap-2">
+                <span class="text-xl">🤖</span>
+                <div>
+                    <h3 class="text-sm font-bold text-white">EduTrack AI Assistant</h3>
+                    <span class="text-[10px] text-indigo-400 font-medium">Online</span>
+                </div>
+            </div>
+            <button onclick="toggleAiChatDrawer()" class="text-slate-400 hover:text-white text-2xl font-bold transition cursor-pointer">&times;</button>
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div id="ai-chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4 text-xs">
+            <div class="flex flex-col items-start">
+                <div class="bg-indigo-600/10 border border-indigo-500/20 text-indigo-200 p-3 rounded-2xl max-w-[85%] self-start">
+                    Hello! I am your EduTrack AI assistant. Ask me anything about your courses, grades, schedules, or how to use the platform!
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <form id="ai-chat-form" class="p-3 border-t border-slate-800 bg-slate-900/60 flex items-center gap-2">
+            <input type="text" id="ai-chat-input" placeholder="Type a message..." class="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500" required>
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // AI Chat Drawer Toggle
+        function toggleAiChatDrawer() {
+            const drawer = document.getElementById('ai-chat-drawer');
+            drawer.classList.toggle('translate-x-full');
+        }
+
+        // Handle Chat Submission via AJAX
+        document.getElementById('ai-chat-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('ai-chat-input');
+            const message = inputEl.value.trim();
+            if (!message) return;
+
+            inputEl.value = '';
+            const messagesContainer = document.getElementById('ai-chat-messages');
+
+            // 1. Append User Message
+            const userMsgHtml = `
+                <div class="flex flex-col items-end">
+                    <div class="user-message-bubble p-3 rounded-2xl max-w-[85%] self-end">
+                        ${escapeHtml(message)}
+                    </div>
+                </div>
+            `;
+            messagesContainer.insertAdjacentHTML('beforeend', userMsgHtml);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // 2. Append Typing Indicator
+            const typingId = 'typing-indicator-' + Date.now();
+            const typingHtml = `
+                <div id="${typingId}" class="flex gap-2 items-center bg-slate-900/40 border border-slate-800 text-slate-400 p-3 rounded-2xl max-w-[85%] self-start">
+                    <div class="flex gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay: 0ms"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay: 150ms"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" style="animation-delay: 300ms"></span>
+                    </div>
+                </div>
+            `;
+            messagesContainer.insertAdjacentHTML('beforeend', typingHtml);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const response = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ message })
+                });
+                const data = await response.json();
+                
+                // Remove Typing Indicator
+                const typingIndicator = document.getElementById(typingId);
+                if (typingIndicator) typingIndicator.remove();
+
+                if (data.success) {
+                    // Append AI Response
+                    const replyHtml = `
+                        <div class="flex flex-col items-start">
+                            <div class="bg-slate-900/60 border border-slate-800 text-slate-200 p-3 rounded-2xl max-w-[85%] self-start whitespace-pre-line">
+                                ${data.reply}
+                            </div>
+                        </div>
+                    `;
+                    messagesContainer.insertAdjacentHTML('beforeend', replyHtml);
+                } else {
+                    throw new Error('Chat failed');
+                }
+            } catch (error) {
+                const typingIndicator = document.getElementById(typingId);
+                if (typingIndicator) typingIndicator.remove();
+                
+                const errorHtml = `
+                    <div class="flex flex-col items-start">
+                        <div class="bg-rose-950/20 border border-rose-500/20 text-rose-300 p-3 rounded-2xl max-w-[85%] self-start">
+                            Sorry, I couldn't process that message. Please try again.
+                        </div>
+                    </div>
+                `;
+                messagesContainer.insertAdjacentHTML('beforeend', errorHtml);
+            }
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        });
+
+        // HTML escape helper
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
 </html>

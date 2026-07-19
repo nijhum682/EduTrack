@@ -44,6 +44,7 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::middleware(['auth'])->group(function () {
     Route::post('/profile/update', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/api/activities/read', [App\Http\Controllers\ProfileController::class, 'markActivitiesAsRead'])->name('activities.read');
+    Route::post('/api/ai/chat', [App\Http\Controllers\CourseApiController::class, 'chatWithAi'])->name('ai.chat');
 
     // Shared API endpoints for courses catalog
     Route::get('/api/courses', [App\Http\Controllers\CourseApiController::class, 'index']);

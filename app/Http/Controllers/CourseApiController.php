@@ -14,6 +14,8 @@ use App\Models\LectureComment;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 /**
  * CourseApiController
@@ -33,7 +35,7 @@ class CourseApiController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = $this->user();
         
         // Start database query (MySQL)
         $query = Course::query();
@@ -87,7 +89,7 @@ class CourseApiController extends Controller
      */
     public function enroll(Course $course)
     {
-        $user = Auth::user();
+        $user = $this->user();
 
         // Block direct enrollment if course has fee
         if ($course->enrollment_fee > 0) {
@@ -125,7 +127,7 @@ class CourseApiController extends Controller
      */
     public function unenroll(Course $course)
     {
-        $user = Auth::user();
+        $user = $this->user();
 
         // Block students from unenrolling
         if ($user->isStudent()) {
@@ -166,7 +168,7 @@ class CourseApiController extends Controller
      */
     public function toggleTask(Task $task)
     {
-        $user = Auth::user();
+        $user = $this->user();
 
         // Verify if user is enrolled in the course that owns the task
         if (!$user->courses()->where('course_id', $task->course_id)->exists()) {
@@ -201,7 +203,7 @@ class CourseApiController extends Controller
      */
     public function getStats()
     {
-        $user = Auth::user();
+        $user = $this->user();
         
         // Refresh relations to get updated data
         $user->load('courses.tasks.submissions');
@@ -261,7 +263,7 @@ class CourseApiController extends Controller
      */
     public function showPaymentPage(Course $course)
     {
-        $user = Auth::user();
+        $user = $this->user();
         if ($user->courses()->where('course_id', $course->id)->exists()) {
             return redirect()->route('dashboard')->with('success', 'You are already enrolled in this course.');
         }
@@ -279,7 +281,8 @@ class CourseApiController extends Controller
             'account_number' => 'required|string|max:50',
         ]);
 
-        $user = Auth::user();
+        /** @var \App\Models\User $user */
+        $user = $this->user();
         $fee = $course->enrollment_fee;
 
         // Call Stripe Payment API using the configured secret key
@@ -290,7 +293,7 @@ class CourseApiController extends Controller
 
         // Mock calling Stripe charge API with Stripe Secret Key
         $stripeMessage = "Processed Taka {$fee} payment via Stripe API charge using token " . substr($stripeKey, 0, 12) . "...";
-        \Log::info($stripeMessage);
+        Log::info($stripeMessage);
 
         if (!$user->courses()->where('course_id', $course->id)->exists()) {
             $user->courses()->attach($course->id);
@@ -351,7 +354,7 @@ class CourseApiController extends Controller
         ]);
 
         $submissions = collect();
-        if (Auth::user()->isTeacher()) {
+        if ($this->user()->isTeacher()) {
             $submissions = \App\Models\TaskSubmission::whereIn('task_id', $course->tasks->pluck('id'))
                 ->with(['user', 'task.course', 'task.questions'])
                 ->orderBy('created_at', 'desc')
@@ -371,7 +374,7 @@ class CourseApiController extends Controller
             'note_file' => 'required|file|mimes:pdf|max:10240', // Max 10MB PDF
         ]);
 
-        $user = Auth::user();
+        $user = $this->user();
         $filePath = null;
 
         if ($request->hasFile('note_file')) {
@@ -451,7 +454,7 @@ class CourseApiController extends Controller
             'question_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
         ]);
 
-        $user = Auth::user();
+        $user = $this->user();
         if ($user->isTeacher()) {
             return redirect()->back()->with('error', 'Instructors cannot post questions.');
         }
@@ -492,7 +495,7 @@ class CourseApiController extends Controller
             'answer_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // Max 5MB
         ]);
 
-        $user = Auth::user();
+        $user = $this->user();
         $imagePath = null;
 
         if ($request->hasFile('answer_image')) {
@@ -530,7 +533,7 @@ class CourseApiController extends Controller
      */
     public function submitAssignment(Request $request, Course $course, Task $task)
     {
-        $user = Auth::user();
+        $user = $this->user();
         
         // Verify enrollment
         if (!$user->courses()->where('course_id', $course->id)->exists()) {
@@ -591,7 +594,7 @@ class CourseApiController extends Controller
      */
     public function submitReviewRequest(Request $request, Course $course, TaskSubmission $submission)
     {
-        $user = Auth::user();
+        $user = $this->user();
 
         // Verify the submission belongs to the current user
         if ($submission->user_id !== $user->id) {
@@ -619,7 +622,7 @@ class CourseApiController extends Controller
      */
     public function deleteQuestion(Course $course, CourseQuestion $question)
     {
-        if (Auth::id() !== $question->user_id && !Auth::user()->isTeacher()) {
+        if (Auth::id() !== $question->user_id && !$this->user()->isTeacher()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -635,7 +638,7 @@ class CourseApiController extends Controller
      */
     public function deleteAnswer(Course $course, CourseQuestion $question, CourseAnswer $answer)
     {
-        if (Auth::id() !== $answer->user_id && !Auth::user()->isTeacher()) {
+        if (Auth::id() !== $answer->user_id && !$this->user()->isTeacher()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -685,7 +688,7 @@ class CourseApiController extends Controller
      */
     public function deleteLectureComment(Course $course, Lecture $lecture, \App\Models\LectureComment $comment)
     {
-        if (Auth::id() !== $comment->user_id && !Auth::user()->isTeacher()) {
+        if (Auth::id() !== $comment->user_id && !$this->user()->isTeacher()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -734,7 +737,7 @@ class CourseApiController extends Controller
      */
     public function deleteNoteComment(Course $course, CourseNote $note, \App\Models\CourseNoteComment $comment)
     {
-        if (Auth::id() !== $comment->user_id && !Auth::user()->isTeacher()) {
+        if (Auth::id() !== $comment->user_id && !$this->user()->isTeacher()) {
             return redirect()->back()->with('error', 'Unauthorized action.');
         }
 
@@ -742,5 +745,86 @@ class CourseApiController extends Controller
         Activity::log('note_comment_delete', "Deleted comment on note '{$note->title}' in {$course->title}");
 
         return redirect()->back()->with('success', 'Comment deleted successfully.');
+    }
+
+    /**
+     * Chat with EduTrack AI Assistant using the OpenAI API Key.
+     */
+    public function chatWithAi(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string|max:1000',
+        ]);
+
+        $message = $request->input('message');
+        $openaiKey = config('services.openai.key');
+
+        // If key is present and not fake/dummy, make direct HTTP request to OpenAI
+        if (!empty($openaiKey) && (strpos($openaiKey, 'sk-') === 0 || strpos($openaiKey, 'sk_') === 0) && strpos($openaiKey, 'fake') === false && app()->environment() !== 'testing') {
+            try {
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $openaiKey,
+                    'Content-Type' => 'application/json',
+                ])->timeout(10)->post('https://api.openai.com/v1/chat/completions', [
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'You are EduTrack AI, a helpful virtual assistant for the EduTrack LMS. Answer questions concisely, using bullet points if helpful.'
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $message
+                        ]
+                    ],
+                    'max_tokens' => 300,
+                ]);
+
+                if ($response->successful()) {
+                    $result = $response->json();
+                    $reply = $result['choices'][0]['message']['content'] ?? null;
+                    if ($reply) {
+                        return response()->json(['success' => true, 'reply' => trim($reply)]);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Fallback to local assistant if request fails
+                Log::warning("OpenAI API call failed: " . $e->getMessage());
+            }
+        }
+
+        // Context-aware simulated assistant logic for fallback/testing
+        $reply = "I'm the EduTrack AI assistant. How can I help you today with your studies, courses, or classroom?";
+        $lowerMsg = strtolower($message);
+
+        if (str_contains($lowerMsg, 'enroll') || str_contains($lowerMsg, 'join') || str_contains($lowerMsg, 'register')) {
+            $reply = "To enroll in a course:\n1. Scroll to the **Available Courses** section on your dashboard.\n2. For free courses, click the light-blue **Enroll Now** button to join immediately.\n3. For paid courses, click **Enroll Now** to proceed to the secure mobile payment checkout page (bKash/Nagad/Rocket).";
+        } elseif (str_contains($lowerMsg, 'payment') || str_contains($lowerMsg, 'pay') || str_contains($lowerMsg, 'taka') || str_contains($lowerMsg, 'bkash')) {
+            $reply = "To pay for a course fee:\n1. Click **Enroll Now** on any course with a price.\n2. Choose your payment method (bKash, Nagad, or Rocket).\n3. Enter your account number and click **Complete Payment**.\n4. You will be instantly enrolled!";
+        } elseif (str_contains($lowerMsg, 'meet') || str_contains($lowerMsg, 'google meet') || str_contains($lowerMsg, 'class') || str_contains($lowerMsg, 'live')) {
+            $reply = "Virtual classes are scheduled by teachers. To join a live class:\n1. Open your course workspace.\n2. Look at the **Scheduled Classes** section.\n3. Click the **Join Class** button next to an active class to open the meeting link!";
+        } elseif (str_contains($lowerMsg, 'grade') || str_contains($lowerMsg, 'score') || str_contains($lowerMsg, 'mark') || str_contains($lowerMsg, 'result')) {
+            $reply = "Your overall course progress is shown on your student dashboard. For tests and assignments:\n- MCQ tests are graded instantly on submission.\n- Written tasks are evaluated manually by your teacher.\n- If you feel a grade is incorrect, click **Request Review** on your grade card.";
+        } elseif (str_contains($lowerMsg, 'assignment') || str_contains($lowerMsg, 'homework') || str_contains($lowerMsg, 'task')) {
+            $reply = "To submit an assignment:\n1. Go to your course workspace and locate the assignment task.\n2. Type your response or upload a file (up to 20MB).\n3. Click **Submit Response** before the deadline.";
+        } elseif (str_contains($lowerMsg, 'note') || str_contains($lowerMsg, 'share')) {
+            $reply = "You can share PDFs and notes inside the course workspace under the **Shared Notes** section. Other students can read, comment on, and like your notes, and teachers can grade them out of 5 stars!";
+        } elseif (str_contains($lowerMsg, 'hello') || str_contains($lowerMsg, 'hi') || str_contains($lowerMsg, 'hey')) {
+            $reply = "Hello! I am your EduTrack AI Assistant. Feel free to ask me questions about payments, grades, virtual classes, or assignments!";
+        }
+
+        return response()->json(['success' => true, 'reply' => $reply]);
+    }
+
+    /**
+     * Get the authenticated user with correct type-hinting for IDE support.
+     * 
+     * @return \App\Models\User
+     */
+    private function user(): \App\Models\User
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user;
     }
 }

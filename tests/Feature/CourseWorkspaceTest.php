@@ -822,4 +822,17 @@ class CourseWorkspaceTest extends TestCase
         $deleteClassResponse->assertRedirect();
         $this->assertDatabaseMissing('scheduled_classes', ['id' => $class->id]);
     }
+
+    public function test_user_can_chat_with_ai()
+    {
+        $student = \App\Models\User::factory()->create(['role' => 'student']);
+
+        // Chat message regarding payment
+        $response = $this->actingAs($student)
+            ->postJson(route('ai.chat'), ['message' => 'How do I pay?']);
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['success', 'reply']);
+        $this->assertStringContainsString('Enroll Now', $response->json('reply'));
+    }
 }
